@@ -60,3 +60,11 @@ infra
 - Set up Routing tables
 - Set up outputs
 - Define variables in module
+- Set up EIP for NAT
+- Set up NAT Gateway
+- Set up route table
+- Set up route to public internet (Internet Gateway)
+- Set up route association (for each public subnet)
+- Set up private route table
+- Set up private route (NAT Gateway)
+- Set up route association (for each private subnet)
