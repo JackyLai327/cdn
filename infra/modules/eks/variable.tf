@@ -1,25 +1,19 @@
 variable "cluster_name" {
-    type        = string
-    description = "The name of the EKS cluster"
+  type        = string
+  description = "The name of the EKS cluster"
 }
 
 variable "cluster_version" {
-    type    = string
-    default = "1.30"
+  type    = string
+  default = "1.30"
 }
 
 variable "vpc_id" {
-    type        = string
-    description = "The ID of the VPC"
+  type        = string
+  description = "The ID of the VPC"
 }
 
 variable "private_subnets" {
-    type        = list(string)
-    description = "The list of private subnets"
+  type        = list(string)
+  description = "The list of private subnets"
 }
-
-# variable "access_principal_arn" {
-#     type        = string
-#     description = "The list of principal ARNs to grant access to the EKS cluster"
-#     default = "arn:aws:iam::791954933241:user/terraform-user"
-# }

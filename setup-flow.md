@@ -76,3 +76,7 @@ infra
 - Set up EKS module (Use AWS managed node group)
 - Set up outputs (EKS need oidc provider arn for IRSA (IAM Role for Service Accounts))
 - Set up EKS module (in the dev folder's eks.tf)
+- Authenticate and authorise kubectl to EKS cluster
+- Update kubectl config
+- Test kubectl command
+
