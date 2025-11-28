@@ -106,3 +106,12 @@ infra
 - `kubectl exec -it bastion -- bash` => enter the pod
 - `psql -h <RDS_ENDPOINT> -U <RDS_USERNAME> -d <RDS_DB_NAME>` => connect to RDS
 - password = `aws secretsmanager get-secret-value --secret-id <SECRET_ARN> --query SecretString --output text | jq -r .password`
+
+## Install Metrics Server
+
+- Create a namespace: `kubectl create namespace kube-system --dry-run=client -o yaml`
+- Apply official metrics server manifest: `kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml`
+- AWS/EKS nodes patching to support pod metrics behind AWS networking (--kubelet-insecure-tls is needed): `kubectl patch deployment metrics-server -n kube-system \
+  --type='json' \
+  -p='[{"op": "add", "path": "/spec/template/spec/containers/0/args/-", "value": "--kubelet-insecure-tls"}]'`
+- Test with top nodes: `kubectl top node`
