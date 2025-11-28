@@ -115,3 +115,102 @@ infra
   --type='json' \
   -p='[{"op": "add", "path": "/spec/template/spec/containers/0/args/-", "value": "--kubelet-insecure-tls"}]'`
 - Test with top nodes: `kubectl top node`
+
+## Install AWS Load Balancer Controller
+
+- Get cluster OIDC provider URL
+
+  ```bash
+  aws eks describe-cluster \
+    --name <CLUSTER_NAME> \
+    --region <CLUSTER_REGION> \
+    --query "cluster.identity.oidc.issuer" \
+    --output text
+  ```
+
+- Result should look something like this: `https://oidc.eks.ap-southeast-2.amazonaws.com/id/9C2F895A3D80F16F9E164D23BAB8CA41`
+
+- Create IAM Role Trust policy for the controller:
+
+  ```json
+  # lb-controller-trust.json
+  {
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Federated": "arn:aws:iam::791954933241:oidc-provider/oidc.eks.ap-southeast-2.amazonaws.com/id/9C2F895A3D80F16F9E164D23BAB8CA41"
+      },
+      "Action": "sts:AssumeRoleWithWebIdentity",
+      "Condition": {
+        "StringEquals": {
+          "oidc.eks.ap-southeast-2.amazonaws.com/id/9C2F895A3D80F16F9E164D23BAB8CA41:sub": "system:serviceaccount:kube-system:aws-load-balancer-controller"
+        }
+      }
+    }
+  ]
+  }
+  ```
+
+- Create IAM Role Permissions Policy
+
+  ```bash
+  # IAM Permissions Policy
+  curl -o iam_policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/main/docs/install/iam_policy.json
+
+  aws iam create-policy \
+    --policy-name AWSLoadBalancerControllerIAMPolicy \
+    --policy-document file://iam_policy.json
+  ```
+
+  **This will return a policy ARN, make sure to save it for the next step**
+
+  **Make sure only the controller service account has access to assume the role**
+
+- Create IAM Role for the controller
+
+  ```bash
+  aws iam create-role \
+    --role-name AmazonEKSLoadBalancerControllerRole \
+    --assume-role-policy-document file://lb-controller-trust.json
+  ```
+
+- Attach the permissions policy to the role
+
+  ```bash
+  aws iam attach-role-policy \
+    --role-name AmazonEKSLoadBalancerControllerRole \
+    --policy-arn <POLICY_ARN>
+  ```
+
+- Deploy the Service Account for IRSA
+  
+  ```bash
+  kubectl apply -f - <<EOF
+  apiVersion: v1
+  kind: ServiceAccount
+  metadata:
+    namespace: kube-system
+    name: aws-load-balancer-controller
+    annotations:
+      eks.amazonaws.com/role-arn: arn:aws:iam::<ACCOUNT_ID>:role/AmazonEKSLoadBalancerControllerRole
+  EOF
+  ```
+
+- Install the AWS Load Balancer Controller using Helm
+
+  ```bash
+  helm repo add eks https://aws.github.io/eks-charts
+  helm repo update
+
+  helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
+    -n kube-system \
+    --set clusterName=dev-eks \
+    --set serviceAccount.create=false \
+    --set serviceAccount.name=aws-load-balancer-controller \
+    --set region=ap-southeast-2 \
+    --set vpcId=$(aws eks describe-cluster --region ap-southeast-2 --name dev-eks --query "cluster.resourcesVpcConfig.vpcId" --output text)
+  ```
+
+- Verify Installation: `kubectl get deployment -n kube-system aws-load-balancer-controller` (should be in a ready state)
