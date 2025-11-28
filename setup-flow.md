@@ -86,3 +86,11 @@ infra
 - Set up S3 module
 - Set up outputs
 - Set up S3 module environment (in the dev folder's s3.tf)
+
+## Implement SQS module + DLQ
+
+- Set up variables
+- Set up SQS module
+- Set up DLQ module
+- Set up outputs
+- Set up SQS module environment (in the dev folder's sqs.tf)
