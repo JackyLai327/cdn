@@ -313,3 +313,11 @@ infra
   ```
 
 - Test ExternalDNS running in nodes: `kubectl get pods -n kube-system | grep external`
+
+## Deploy Ingress
+
+- Create a namespace
+- Create a deployment for the app
+- Create a service for the app (NodePort)
+- Create an ingress for the app
+- Check ALB status `kubectl get ingress -n app`
