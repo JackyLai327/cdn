@@ -321,3 +321,14 @@ infra
 - Create a service for the app (NodePort)
 - Create an ingress for the app
 - Check ALB status `kubectl get ingress -n app`
+
+### Application Delivery + HTTPS + CI/CD
+
+- Enable HTTPS using ACM certificates
+  - Go to AWS -> ACM -> Request a certificate
+  - Request a public certificate
+  - Domain: *.dev.easy-cdn.com
+  - Validation: DNS Validation
+  - ACM will give 1-2 CNAME records -> create them in Route53
+  - Wait for certificate to be issued
+- Update ingress for HTTPS
