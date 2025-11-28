@@ -1,9 +1,11 @@
+# * S3 bucket
 resource "aws_s3_bucket" "this" {
   bucket = var.bucket_name
 
   tags = var.tags
 }
 
+# * Ownership controls
 # ! Avoid using ACLS and use ownership controls instead (like this one!)
 resource "aws_s3_bucket_ownership_controls" "this" {
   bucket = aws_s3_bucket.this.id

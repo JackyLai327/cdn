@@ -1,3 +1,4 @@
+# * DLQ
 resource "aws_sqs_queue" "dlq" {
   name = var.dlq_name
 
@@ -6,6 +7,7 @@ resource "aws_sqs_queue" "dlq" {
   tags = var.tags
 }
 
+# * Main queue
 resource "aws_sqs_queue" "main" {
   name = var.queue_name
 

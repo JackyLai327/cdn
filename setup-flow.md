@@ -94,3 +94,15 @@ infra
 - Set up DLQ module
 - Set up outputs
 - Set up SQS module environment (in the dev folder's sqs.tf)
+
+## Implement RDS module
+
+- Set up variables
+- Set up RDS module
+- Set up outputs
+- Set up RDS module environment (in the dev folder's rds.tf)
+- Test RDS from inside EKS (Bastion Pod)
+- `kubectl run bastion --image=postgres:15 -- sleep infinity` => create a temporary pod
+- `kubectl exec -it bastion -- bash` => enter the pod
+- `psql -h <RDS_ENDPOINT> -U <RDS_USERNAME> -d <RDS_DB_NAME>` => connect to RDS
+- password = `aws secretsmanager get-secret-value --secret-id <SECRET_ARN> --query SecretString --output text | jq -r .password`
