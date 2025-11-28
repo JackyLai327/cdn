@@ -60,7 +60,7 @@ infra
 - Set up NAT gateway
 - Set up Routing tables
 - Set up outputs
-- Define variables in module (in the dev folder's vpc.tf)
+- Define variables in module environment (in the dev folder's vpc.tf)
 - Set up EIP for NAT
 - Set up NAT Gateway
 - Set up route table
@@ -75,8 +75,14 @@ infra
 - Set up variables
 - Set up EKS module (Use AWS managed node group)
 - Set up outputs (EKS need oidc provider arn for IRSA (IAM Role for Service Accounts))
-- Set up EKS module (in the dev folder's eks.tf)
+- Set up EKS module environment (in the dev folder's eks.tf)
 - Authenticate and authorise kubectl to EKS cluster
 - Update kubectl config
 - Test kubectl command
 
+## Implement S3 module
+
+- Set up variables
+- Set up S3 module
+- Set up outputs
+- Set up S3 module environment (in the dev folder's s3.tf)
