@@ -214,3 +214,102 @@ infra
   ```
 
 - Verify Installation: `kubectl get deployment -n kube-system aws-load-balancer-controller` (should be in a ready state)
+
+## Implement ExternalDNS
+
+- Create IAM Policy for ExternalDNS
+
+  ```json
+  // external-dns-policy.json
+  {
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "route53:ChangeResourceRecordSets"
+      ],
+      "Resource": [
+        "arn:aws:route53:::hostedzone/*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "route53:ListHostedZones",
+        "route53:ListResourceRecordSets"
+      ],
+      "Resource": ["*"]
+    }
+  ]
+  }
+  ```
+
+- Apply IAM Policy for ExternalDNS
+
+  ```bash
+  aws iam create-policy \
+    --policy-name ExternalDNSPolicy \
+    --policy-document file://external-dns-policy.json
+  ```
+
+  **Save the output arn for the next step**
+
+- Create IAM Role Trust Policy for ExternalDNS
+
+  ```json
+  {
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Federated": "arn:aws:iam::791954933241:oidc-provider/oidc.eks.ap-southeast-2.amazonaws.com/id/9C2F895A3D80F16F9E164D23BAB8CA41"
+      },
+      "Action": "sts:AssumeRoleWithWebIdentity",
+      "Condition": {
+        "StringEquals": {
+          "oidc.eks.ap-southeast-2.amazonaws.com/id/9C2F895A3D80F16F9E164D23BAB8CA41:sub": "system:serviceaccount:kube-system:external-dns"
+        }
+      }
+    }
+  ]
+  }
+  ```
+
+- Create the role:
+
+  ```bash
+  aws iam create-role \
+    --role-name ExternalDNSRole \
+    --assume-role-policy-document file://external-dns-trust.json
+  ```
+
+- Attach the policy to the role:
+
+  ```bash
+  aws iam attach-role-policy \
+    --role-name ExternalDNSRole \
+    --policy-arn arn:aws:iam::791954933241:policy/ExternalDNSPolicy
+  ```
+
+- Install ExternalDNS using Helm
+
+  ```bash
+  helm repo add external-dns https://kubernetes-sigs.github.io/external-dns/
+  helm repo update
+
+
+  helm install external-dns external-dns/external-dns \
+  -n kube-system \
+  --set provider=aws \
+  --set policy=sync \
+  --set registry=txt \
+  --set txtOwnerId=dev-eks \
+  --set serviceAccount.create=false \
+  --set serviceAccount.name=external-dns \
+  --set logLevel=info \
+  --set aws.zoneType=public
+  ```
+
+- Test ExternalDNS running in nodes: `kubectl get pods -n kube-system | grep external`
