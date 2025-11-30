@@ -120,7 +120,7 @@ These metrics can be exposed using libraries provided by observability suites.
 - **Prometheus**: Prometheus is a leading open-source time-series database that’s useful for storing and querying all types of metrics. You can use it to scrape metrics from Kubernetes control plane components, Nodes (via the Node-Exporter agent), and your own applications. Prometheus is easy to operate in Kubernetes clusters using the Kube-Prometheus-Stack community project (see below).
 - **Grafana**: Grafana is a centralized observability solution that lets you build visual dashboards from your data. It works with data sources including Prometheus.
 - **Kube-Prometheus-Stack**: A popular community-managed project, this Helm chart automates the installation and configuration of Prometheus and Grafana in your cluster.
-- **Datadog**: Datadog is a popular observability platform that collects and stores Kubernetes metrics and logs. Deploying the Datadog Agent in your cluster automates the collection of me trics data from your environment.
+- **Datadog**: Datadog is a popular observability platform that collects and stores Kubernetes metrics and logs. Deploying the Datadog Agent in your cluster automates the collection of metrics data from your environment.
 - **AWS Cloud Watch and Container Insights**: These AWS-specific monitoring solutions provide deep visibility into Amazon EKS clusters and associated resources. You can analyze the metrics within your AWS account.
 - **Google Cloud Monitoring**: Google’s cloud observability solution lets you monitor the health and performance of GKE clusters. You can enable cluster, Node, and workload metrics as configurable packages.
 
