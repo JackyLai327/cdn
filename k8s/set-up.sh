@@ -223,5 +223,15 @@ helm upgrade --install external-dns external-dns/external-dns \
 # Test ExternalDNS
 kubectl get pods -n kube-system | grep external
 
-# Deploy Ingress
-kubectl get ingress -n app || true
+# Deploy deployment, service and ingress
+kubectl create namespace app
+kubectl apply -f deployment-app.yaml
+kubectl apply -f svc-app.yaml
+kubectl apply -f ingress-app.yaml
+kubectl get ingress -n app
+
+# Delete the policies files when done
+rm lb-controller-trust.json iam_policy.json external-dns-policy.json external-dns-trust.json
+
+# Print message
+echo "AWS Load Balancer Controller and ExternalDNS have been installed successfully."
