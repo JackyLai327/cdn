@@ -33,3 +33,6 @@ terraform.rc
 
 # Editor Config
 .editorconfig
+
+# Node modules recursively
+node_modules
