@@ -51,6 +51,12 @@ infra
         └── variable.tf
 ```
 
+## Define Provider
+
+- Define provider in providers.tf
+- Define backend in main.tf
+- Define region in providers.tf
+
 ## Implement VPC module
 
 - Set up variables
