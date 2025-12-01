@@ -53,6 +53,7 @@ infra
 
 ## Define Provider
 
+- Define versions of terraform and providers in versions.tf
 - Define provider in providers.tf
 - Define backend in main.tf
 - Define region in providers.tf

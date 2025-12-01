@@ -1,6 +1,6 @@
 # Notes for EKS
 
-(ref: https://spacelift.io/blog/kubernetes-metrics#how-to-monitor-kubernetes-metrics-tools-for-collecting-and-monitoring)
+(ref: <https://spacelift.io/blog/kubernetes-metrics#how-to-monitor-kubernetes-metrics-tools-for-collecting-and-monitoring>)
 
 ## Important Metrics to consider
 
