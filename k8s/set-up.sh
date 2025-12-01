@@ -190,6 +190,21 @@ aws iam attach-role-policy \
     --role-name ExternalDNSRole \
     --policy-arn arn:aws:iam::${ACCOUNT_ID}:policy/ExternalDNSPolicy
 
+# Wait for AWS Load Balancer Controller to be ready (to avoid webhook errors)
+echo "Waiting for AWS Load Balancer Controller to be ready..."
+kubectl rollout status deployment/aws-load-balancer-controller -n kube-system
+
+# Deploy the Service Account for ExternalDNS IRSA
+kubectl apply -f - <<EOF
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  namespace: kube-system
+  name: external-dns
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::${ACCOUNT_ID}:role/ExternalDNSRole
+EOF
+
 # Install ExternalDNS using Helm
 helm repo add external-dns https://kubernetes-sigs.github.io/external-dns/
 helm repo update
