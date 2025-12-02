@@ -8,3 +8,10 @@ export const initiateUploadSchema = z.object({
 })
 
 export type InitiateUploadSchema = z.infer<typeof initiateUploadSchema>
+
+export const completeUploadSchema = z.object({
+  fileId: z.string().uuid(),
+  storageKey: z.string().min(1),
+})
+
+export type CompleteUploadSchema = z.infer<typeof completeUploadSchema>

@@ -1,8 +1,8 @@
 import { BadRequestError } from "../lib/errors.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import type { FilesService } from "../services/filesService.js";
-import { initiateUploadSchema } from "./schemas/files.schema.js";
 import { type Request, type Response, type NextFunction } from "express";
+import { completeUploadSchema, initiateUploadSchema } from "./schemas/files.schema.js";
 
 export const initiateUpload = (filesService: FilesService) =>
   async (req: Request, res: Response, next: NextFunction) => {
@@ -25,3 +25,23 @@ export const initiateUpload = (filesService: FilesService) =>
       next(error);
     }
   }
+
+export const completeUpload = (filesService: FilesService) =>
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const parsed = completeUploadSchema.safeParse(req.body || {});
+      if (!parsed.success) {
+        throw new BadRequestError("Invalid input: " + JSON.stringify(parsed.error.format()));
+      }
+
+      const result = await filesService.completeUpload(parsed.data);
+
+      const response = ApiResponse.success({
+        result,
+      }, "File uploaded successfully")
+
+      return res.status(response.statusCode).json(response.data);
+    } catch (error) {
+      next(error);
+    }
+  };

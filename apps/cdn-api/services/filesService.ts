@@ -49,23 +49,24 @@ export class FilesService {
     fileId: string;
     storageKey: string;
   }) {
+    const { fileId, storageKey } = params;
+
     // Check S3 object
-    const exists = await this.storageService.verifyObjectExists(params.storageKey);
+    const exists = await this.storageService.verifyObjectExists(storageKey);
     if (!exists) {
       throw new Error("File not found");
     }
 
     // Update DB record
-    await this.dbService.markUploaded(params.fileId);
+    await this.dbService.markUploaded(fileId);
 
     // Send to queue
     await this.queueService.sendJob({
-      fileId: params.fileId,
-      storageKey: params.storageKey,
+      fileId,
+      storageKey,
+      requestedSizes: ["1280", "640", "320"],
     });
 
-    return {
-      status: "processing",
-    };
+    return { status: "processing" };
   }
 }
