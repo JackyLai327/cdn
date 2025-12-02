@@ -7,7 +7,7 @@ import { type Request, type Response, type NextFunction } from "express";
 export const initiateUpload = (filesService: FilesService) =>
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const parsed = initiateUploadSchema.safeParse(req.body);
+      const parsed = initiateUploadSchema.safeParse(req.body || {});
       if (!parsed.success) {
         throw new BadRequestError("Invalid input: " + JSON.stringify(parsed.error.format()));
       }

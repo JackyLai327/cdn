@@ -6,3 +6,5 @@ export class QueueService implements IQueueService {
     throw new Error("Method not implemented");
   }
 }
+
+export const queueService = new QueueService();

@@ -1,13 +1,13 @@
 import express from "express";
-import { DBService } from "../services/dbService.js";
-import { QueueService } from "../services/queueService.js";
+import { dbService } from "../services/dbService.js";
+import { queueService } from "../services/queueService.js";
 import { FilesService } from "../services/filesService.js";
-import { StorageService } from "../services/storageService.js";
+import { storageService } from "../services/storageService.js";
 import { initiateUpload } from "../controllers/files.controller.js";
 
 const router = express.Router();
 
-const filesService = new FilesService(new DBService(), new QueueService(), new StorageService());
+const filesService = new FilesService(dbService, queueService, storageService);
 
 // POST /api/files/initiate
 router.post("/initiate", initiateUpload(filesService));

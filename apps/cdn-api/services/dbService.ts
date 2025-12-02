@@ -1,7 +1,16 @@
+import { Pool } from "pg";
+import { config } from "../config/index.js";
 import { type IDBService } from "./interfaces/db.js";
 
+const pool = new Pool({
+  host: config.DB_HOST,
+  port: Number(config.DB_HOST),
+  user: config.DB_USER,
+  password: config.DB_PASSWORD,
+  database: config.DB_NAME,
+});
+
 export class DBService implements IDBService {
-  // TODO: Implement methods
   async createFileRecord(data: {
     id: string,
     userId: string,
@@ -10,26 +19,49 @@ export class DBService implements IDBService {
     sizeBytes: number,
     storageKey: string,
   }): Promise<void> {
-    throw new Error("Method not implemented");
+    const query = `
+      INSERT INTO files
+        (id, user_id, original_filename, mime_type, size_bytes, storage_key, status)
+        VALUES ($1, $2, $3, $4, $5, $6, 'pending_upload');
+    `
+    await pool.query(query, [
+      data.id,
+      data.userId,
+      data.originalFilename,
+      data.mimeType,
+      data.sizeBytes,
+      data.storageKey,
+    ])
   }
 
-  // TODO: Implement method
   async markUploaded(id: string): Promise<void> {
-    throw new Error("Method not implemented");
+    await pool.query(
+      `UPDATE files SET status='uploaded', updated_at=NOW() WHERE id=$1;`,
+      [id]
+    )
   }
 
-  // TODO: Implement method
   async updateStatus(id: string, status: string): Promise<void> {
-    throw new Error("Method not implemented");
+    await pool.query(
+      `UPDATE files SET status=$2, updated_at=NOW() WHERE id=$1;`,
+      [id, status]
+    )
   }
 
-  // TODO: Implement method
   async addVariants(id: string, variants: string[]): Promise<void> {
-    throw new Error("Method not implemented");
+    await pool.query(
+      `UPDATE files SET variants=$2, updated_at=NOW() WHERE id=$1;`,
+      [id, JSON.stringify(variants)]
+    )
   }
 
-  // TODO: Implement method
   async getFileById(id: string): Promise<any> {
-    throw new Error("Method not implemented");
+    const result = await pool.query(
+      `SELECT * FROM files WHERE id=$1;`,
+      [id]
+    )
+    return result.rows[0];
   }
 }
+
+export const dbService = new DBService();
