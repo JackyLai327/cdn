@@ -11,5 +11,5 @@ CREATE TABLE IF NOT EXISTS files (
   variants JSONB DEFAULT '[]',          -- Array of variant objects .e.g. ["1280/uuid.png", "640/uuid.png"]
 
   created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
 );

@@ -2,16 +2,18 @@ version: "3.8"
 
 services:
   postgres:
-    image: postgres:16
+    image: postgres:15.15
     environment:
       POSTGRES_USER: cdn
       POSTGRES_PASSWORD: cdn
       POSTGRES_DB: cdn_dev
     ports:
       - "5432:5432"
+    volumes:
+      - ./db/postgres-init.sql:/docker-entrypoint-initdb.d/init.sql
 
   minio:
-    image: minio/minio
+    image: minio/minio:RELEASE.2025-06-13T11-33-47Z
     environment:
       MINIO_ROOT_USER: minio
       MINIO_ROOT_PASSWORD: minio123
@@ -20,7 +22,7 @@ services:
       - "9001:9001"
 
   localstack:
-    image: localstack/localstack
+    image: localstack/localstack:latest-amd64
     environment:
       SERVICES: sqs
       EDGE_PORT: "4566"
