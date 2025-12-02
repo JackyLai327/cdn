@@ -6,7 +6,7 @@ import { StorageService } from "./storageService.js";
 /**
  * File service - Orchestrates file upload and processing logic
  */
-export class FileService {
+export class FilesService {
   constructor(
     private dbService: DBService,
     private queueService: QueueService,
