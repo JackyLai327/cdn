@@ -7,6 +7,6 @@ import { ApiResponse } from "../utils/apiResponse.js";
  * @param req
  * @param res
  */
-export const postFiles = (req: Request, res: Response) => {
+export const initiateFiles = (req: Request, res: Response) => {
 
 }
