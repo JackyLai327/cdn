@@ -1,7 +1,14 @@
 import { v4 as uuid } from "uuid";
 import { DBService } from "./dbService.js";
+import { config } from "../config/index.js";
 import { QueueService } from "./queueService.js";
+import { NotFoundError } from "../lib/errors.js";
 import { StorageService } from "./storageService.js";
+
+type VariantRecord = {
+  size: number,
+  key: string
+}
 
 /**
  * File service - Orchestrates file upload and processing logic
@@ -11,7 +18,7 @@ export class FilesService {
     private dbService: DBService,
     private queueService: QueueService,
     private storageService: StorageService,
-  ) {}
+  ) { }
 
   async initiateUpload(params: {
     userId: string;
@@ -68,5 +75,52 @@ export class FilesService {
     });
 
     return { status: "processing" };
+  }
+
+  async getFile(fileId: string) {
+    const row = await this.dbService.getFileById(fileId);
+    if (!row) {
+      throw new NotFoundError("File not found");
+    }
+
+    const variantsRaw: VariantRecord[] = row.variants || [];
+
+    // Original file URL (from RAW bucket)
+    let originalFileUrl: string | null = null;
+    if (row.status === "uploaded" || row.status === "processing" || row.status === "ready") {
+      originalFileUrl = await this.storageService.generatePresignedDownloadURL({
+        key: row.storageKey,
+        bucket: config.S3_BUCKET_RAW
+      });
+    }
+
+    // Variants URLs (from processed bucket)
+    const variants = await Promise.all(
+      variantsRaw.map(async (v) => {
+        const url = await this.storageService.generatePresignedDownloadURL({
+          key: v.key,
+          bucket: config.S3_BUCKET_PROCESSED
+        });
+
+        return {
+          size: v.size,
+          key: v.key,
+          url,
+        }
+      })
+    )
+
+    return {
+      id: row.id,
+      userId: row.user_id,
+      originalFilename: row.original_filename,
+      mimeType: row.mime_type,
+      sizeBytes: row.size_bytes,
+      status: row.status,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+      variants,
+      originalFileUrl,
+    }
   }
 }

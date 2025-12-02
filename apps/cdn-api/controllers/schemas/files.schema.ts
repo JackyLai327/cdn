@@ -15,3 +15,9 @@ export const completeUploadSchema = z.object({
 })
 
 export type CompleteUploadSchema = z.infer<typeof completeUploadSchema>
+
+export const fileIdParamsSchema = z.object({
+  id: z.string().uuid(),
+})
+
+export type FileIdParamsSchema = z.infer<typeof fileIdParamsSchema>

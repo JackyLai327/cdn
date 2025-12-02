@@ -18,4 +18,16 @@ export interface IStorageService {
    * @returns Promise<boolean>: Resolves with true if the object exists, false otherwise
    */
   verifyObjectExists(key: string): Promise<boolean>;
+
+  /**
+   * Generate a presigned download URL
+   *
+   * @param params: Download parameters
+   * @returns Promise<string>: Resolves with the presigned download URL
+   */
+  generatePresignedDownloadURL(params: {
+    key: string;
+    bucket?: string;
+    expiresIn?: number;
+  }): Promise<string>;
 }

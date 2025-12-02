@@ -2,7 +2,7 @@ import { BadRequestError } from "../lib/errors.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import type { FilesService } from "../services/filesService.js";
 import { type Request, type Response, type NextFunction } from "express";
-import { completeUploadSchema, initiateUploadSchema } from "./schemas/files.schema.js";
+import { completeUploadSchema, fileIdParamsSchema, initiateUploadSchema } from "./schemas/files.schema.js";
 
 export const initiateUpload = (filesService: FilesService) =>
   async (req: Request, res: Response, next: NextFunction) => {
@@ -13,12 +13,7 @@ export const initiateUpload = (filesService: FilesService) =>
       }
 
       const result = await filesService.initiateUpload(parsed.data);
-
-      const response = ApiResponse.success({
-        fileId: result.fileId,
-        uploadURL: result.uploadURL,
-        storageKey: result.storageKey,
-      }, "File is ready to be uploaded")
+      const response = ApiResponse.success(result, "File is ready to be uploaded")
 
       return res.status(response.statusCode).json(response.data);
     } catch (error) {
@@ -35,13 +30,27 @@ export const completeUpload = (filesService: FilesService) =>
       }
 
       const result = await filesService.completeUpload(parsed.data);
-
-      const response = ApiResponse.success({
-        result,
-      }, "File uploaded successfully")
+      const response = ApiResponse.success(result, "File uploaded successfully")
 
       return res.status(response.statusCode).json(response.data);
     } catch (error) {
       next(error);
     }
   };
+
+export const getFileById = (filesService: FilesService) =>
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const parsed = fileIdParamsSchema.safeParse(req.params);
+      if (!parsed.success) {
+        throw new BadRequestError("Invalid file ID");
+      }
+
+      const result = filesService.getFile(parsed.data.id);
+      const response = ApiResponse.success(result, "File retrieved successfully");
+
+      return res.status(response.statusCode).json(response.data);
+    } catch (error) {
+      next(error);
+    }
+  }

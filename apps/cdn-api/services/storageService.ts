@@ -1,7 +1,7 @@
 import { config } from "../config/index.js";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { type IStorageService } from "./interfaces/storage.js";
-import { HeadObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { GetObjectAclCommand, HeadObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
 export class StorageService implements IStorageService {
   private s3: S3Client;
@@ -48,6 +48,23 @@ export class StorageService implements IStorageService {
     } catch (error) {
       return false;
     }
+  }
+
+  async generatePresignedDownloadURL({
+    key,
+    bucket,
+    expiresIn = 5 * 60,
+  }: {
+    key: string;
+    bucket?: string;
+    expiresIn?: number;
+  }): Promise<string> {
+    const command = new GetObjectAclCommand({
+      Bucket: bucket ?? config.S3_BUCKET_RAW,
+      Key: key,
+    });
+
+    return await getSignedUrl(this.s3, command, { expiresIn });
   }
 }
 
