@@ -1,0 +1,31 @@
+import { Pool } from "pg";
+import { config } from "../../config";
+import { Variant } from "../types/variant";
+import { IDBService } from "./interfaces/db";
+
+export class DBService implements IDBService {
+
+  private db = new Pool({
+    host: config.DB_HOST,
+    port: config.DB_PORT,
+    user: config.DB_USER,
+    password: config.DB_PASSWORD,
+    database: config.DB_NAME,
+  })
+
+  async updateStatus(fileId: string, status: string): Promise<void> {
+    await this.db.query(
+      `UPDATE files SET status=$1, updated_at=NOW() WHERE id=$2;`,
+      [status, fileId]
+    )
+  }
+
+  async addVariants(fileId: string, variants: Variant[]): Promise<void> {
+    await this.db.query(
+      `UPDATE files SET variants=$1, status='ready', updated_at=NOW() WHERE id=$2;`,
+      [JSON.stringify(variants), fileId]
+    )
+  }
+}
+
+export const dbService = new DBService();
