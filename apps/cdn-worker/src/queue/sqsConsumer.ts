@@ -12,6 +12,10 @@ export class SqsConsumer {
     this.sqs = new SQSClient({
       region: config.S3_REGION,
       endpoint: config.SQS_ENDPOINT, // For LocalStack
+      credentials: {
+        accessKeyId: config.S3_ACCESS_KEY_ID,
+        secretAccessKey: config.S3_SECRET_ACCESS_KEY,
+      }
     });
   }
 
@@ -47,12 +51,20 @@ export class SqsConsumer {
             );
 
             logger.info(`Worker: processed and deleted job ${body.fileId}`);
-          } catch (error) {
-            logger.error(`Worker: failed to process job ${body.fileId}: ${error}`);
+          } catch (error: any) {
+            logger.error(`Worker: failed to process job ${body.fileId}: {
+              message: ${error.message},
+              stack: ${error.stack}
+            }`);
           }
         }
-      } catch (error) {
-        logger.error(`Worker: polling error: ${error}`);
+      } catch (error: any) {
+        logger.error(`Worker: polling error: {
+          name: ${error.name}
+          message: ${error.message},
+          stack: ${error.stack},
+          errors: ${(error.errors ?? []).map((e: any) => e.message).join(", ")}
+        }`);
       }
     }
   }

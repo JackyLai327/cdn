@@ -3,8 +3,8 @@ import { logger } from "../lib/logger";
 import { FileProcessingJob } from "./types/job";
 import { dbService } from "./services/dbService";
 import { SqsConsumer } from "./queue/sqsConsumer";
-import { storageService } from "./services/StorageService";
-import { imageProcessor } from "./services/imageProcessor";
+import { storageService } from "./services/storageService";
+import { imageProcessor } from "./services/imageProcessor";;
 
 
 async function handleJob(job: FileProcessingJob) {

@@ -14,20 +14,37 @@ services:
 
   minio:
     image: minio/minio:RELEASE.2025-06-13T11-33-47Z
+    command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: minio
       MINIO_ROOT_PASSWORD: minio123
     ports:
       - "9000:9000"
       - "9001:9001"
+    volumes:
+      - ./minio/data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   localstack:
     image: localstack/localstack:latest-amd64
     environment:
       SERVICES: sqs
       EDGE_PORT: "4566"
+      DEFAULT_REGION: ap-southeast-2
+      DEBUG: 1
     ports:
       - "4566:4566"
+    volumes:
+      - ./localstack-init.sh:/etc/localstack/init/ready.d/init-aws.sh
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
 
   # TODO: Add cdn-api and cdn-worker containers when their dockerfiles are readyccd
   cdn-api:
@@ -35,47 +52,59 @@ services:
     environment:
       NODE_ENV: development
       APP_PORT: 3000
-      DB_HOST: localhost
+
+      DB_HOST: postgres
       DB_PORT: 5432
       DB_USER: cdn
       DB_PASSWORD: cdn
       DB_NAME: cdn_dev
 
       S3_ENDPOINT: http://localhost:9000
-      S3_REGION: us-east-1
+      S3_REGION: ap-southeast-2
       S3_ACCESS_KEY_ID: minio
       S3_SECRET_ACCESS_KEY: minio123
       S3_BUCKET_RAW: cdn-raw
       S3_BUCKET_PROCESSED: cdn-processed
-      QUEUE_URL: http://localhost:4566/000000000000/cdn-jobs
+
+      SQS_ENDPOINT: http://localstack:4566
+      QUEUE_URL: http://localstack:4566/000000000000/cdn-jobs
     ports:
       - "3000:3000"
     depends_on:
-      - postgres
-      - minio
-      - localstack
+      postgres:
+        condition: service_started
+      minio:
+        condition: service_started
+      localstack:
+        condition: service_healthy
 
   cdn-worker:
     build: ../apps/cdn-worker
     environment:
       NODE_ENV: development
-      APP_PORT: 3000
-      DB_HOST: localhost
+      APP_PORT: 8787
+
+      DB_HOST: postgres
       DB_PORT: 5432
       DB_USER: cdn
       DB_PASSWORD: cdn
       DB_NAME: cdn_dev
 
-      S3_ENDPOINT: http://localhost:9000
-      S3_REGION: us-east-1
+      S3_ENDPOINT: http://minio:9000
+      S3_REGION: ap-southeast-2
       S3_ACCESS_KEY_ID: minio
       S3_SECRET_ACCESS_KEY: minio123
       S3_BUCKET_RAW: cdn-raw
       S3_BUCKET_PROCESSED: cdn-processed
-      QUEUE_URL: http://localhost:4566/000000000000/cdn-jobs
+
+      SQS_ENDPOINT: http://localstack:4566
+      QUEUE_URL: http://localstack:4566/000000000000/cdn-jobs
     ports:
       - "8787:8787"
     depends_on:
-      - postgres
-      - minio
-      - localstack
+      postgres:
+        condition: service_started
+      minio:
+        condition: service_started
+      localstack:
+        condition: service_healthy

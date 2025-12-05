@@ -26,6 +26,7 @@ const envSchema = z.object({
   S3_BUCKET_PROCESSED: z.string(),
 
   // Queue (SQS / LocalStack)
+  SQS_ENDPOINT: z.string(),
   QUEUE_URL: z.string(),
 });
 

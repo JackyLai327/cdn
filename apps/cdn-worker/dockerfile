@@ -1,0 +1,32 @@
+# Stage 1: Build the application
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Install dependencies
+COPY package*.json ./
+RUN npm install
+
+# Copy source code
+COPY . .
+
+# Build the TypeScript application
+RUN npm run build
+
+# Stage 2: Run the application
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install production dependencies only
+COPY package*.json ./
+RUN npm install --only=production
+
+# Copy built artifacts from the builder stage
+COPY --from=builder /app/dist ./dist
+
+# Expose the application port
+EXPOSE 8787
+
+# Start the application
+CMD ["npm", "start"]

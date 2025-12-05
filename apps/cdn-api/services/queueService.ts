@@ -7,15 +7,19 @@ export class QueueService implements IQueueService {
   private sqs: SQSClient;
 
   constructor() {
-    const endpoint = config.S3_ENDPOINT.includes("minio")
+    const endpoint = config.SQS_ENDPOINT || (config.S3_ENDPOINT.includes("minio")
       ? undefined // MinIO doesn't support SQS
       : config.QUEUE_URL.startsWith("http")
         ? config.QUEUE_URL.replace(/\/[^\/]+$/, "")
-        : undefined;
+        : undefined);
 
     this.sqs = new SQSClient({
       region: config.S3_REGION,
       ...(endpoint && { endpoint }),
+      credentials: {
+        accessKeyId: config.S3_ACCESS_KEY_ID,
+        secretAccessKey: config.S3_SECRET_ACCESS_KEY,
+      }
     });
   }
 
