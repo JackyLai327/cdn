@@ -55,13 +55,24 @@ export class FilesService {
   async completeUpload(params: {
     fileId: string;
     storageKey: string;
+    userId: string;
   }) {
-    const { fileId, storageKey } = params;
+    const { fileId, storageKey, userId } = params;
+
+    // Check current status
+    const file = await this.dbService.getFileById(fileId);
+    if (!file) {
+      throw new NotFoundError("File not found");
+    }
+
+    if (["uploaded", "processing", "ready"].includes(file.status)) {
+      return { status: file.status };
+    }
 
     // Check S3 object
     const exists = await this.storageService.verifyObjectExists(storageKey);
     if (!exists) {
-      throw new Error("File not found");
+      throw new Error("File not found in storage");
     }
 
     // Update DB record
@@ -71,7 +82,8 @@ export class FilesService {
     await this.queueService.sendJob({
       fileId,
       storageKey,
-      requestedSizes: ["1280", "640", "320"],
+      userId,
+      requestedSizes: [1280, 640, 320],
     });
 
     return { status: "processing" };
