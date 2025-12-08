@@ -17,22 +17,27 @@ async function handleJob(job: FileProcessingJob) {
   } = job;
 
   try {
-    // 1. Download raw file
+    // 1. Get file metadata
+    const file = await dbService.getFile(fileId);
+
+    const { mimeType } = file;
+
+    // 2. Download raw file
     const raw = await storageService.downloadFile(config.S3_BUCKET_RAW, storageKey)
 
     const variants = [];
     const fileName = storageKey.split("/").pop();
 
-    // 2. Process sizes
+    // 3. Process sizes
     for (const size of requestedSizes) {
-      const processed = await imageProcessor.resizeImage(raw, size);
+      const processed = await imageProcessor.resizeImage(raw, size, mimeType);
       const processedKey = `processed/${job.userId}/${fileId}/${size}/${fileName}`
 
       await storageService.uploadFile(
         config.S3_BUCKET_PROCESSED,
         processedKey,
         processed,
-        "image/jpeg"
+        mimeType
       )
 
       variants.push({
@@ -41,7 +46,7 @@ async function handleJob(job: FileProcessingJob) {
       })
     }
 
-    // 3. Update DB
+    // 4. Update DB
     await dbService.addVariants(fileId, variants);
 
     logger.info(`Worker: processed job ${job.fileId}`);

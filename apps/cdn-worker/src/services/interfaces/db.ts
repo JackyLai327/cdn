@@ -1,4 +1,5 @@
 import { Variant } from "../../types/variant"
+import { FileMetadata } from "../../types/fileMetadata"
 
 export interface IDBService {
   /**
@@ -14,4 +15,10 @@ export interface IDBService {
    * @param variants
    */
   addVariants(fileId: string, variants: Variant[]): Promise<void>
+
+  /**
+   * Get a file by ID
+   * @param fileId
+   */
+  getFile(fileId: string): Promise<FileMetadata>
 }

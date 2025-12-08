@@ -2,6 +2,7 @@ import { Pool } from "pg";
 import { config } from "../../config";
 import { Variant } from "../types/variant";
 import { IDBService } from "./interfaces/db";
+import { FileMetadata } from "../types/fileMetadata";
 
 export class DBService implements IDBService {
 
@@ -25,6 +26,14 @@ export class DBService implements IDBService {
       `UPDATE files SET variants=$1, status='ready', updated_at=NOW() WHERE id=$2;`,
       [JSON.stringify(variants), fileId]
     )
+  }
+
+  async getFile(fileId: string): Promise<FileMetadata> {
+    const result = await this.db.query(
+      `SELECT * FROM files WHERE id=$1;`,
+      [fileId]
+    )
+    return result.rows[0]
   }
 }
 
