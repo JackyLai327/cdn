@@ -83,7 +83,7 @@ export class FilesService {
       fileId,
       storageKey,
       userId,
-      requestedSizes: [1280, 640, 320],
+      requestedSizes: [1280, 1080, 640, 720, 320, 300],
     });
 
     return { status: "processing" };
