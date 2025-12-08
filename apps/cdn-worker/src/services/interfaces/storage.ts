@@ -14,4 +14,10 @@ export interface IStorageService {
    * @param contentType
    */
   uploadFile(bucket: string, key: string, body: Buffer, contentType: string): Promise<void>;
+
+  /**
+   * Delete a file from storage
+   * @param keys
+   */
+  deleteFiles(keys: string[]): Promise<void>;
 }

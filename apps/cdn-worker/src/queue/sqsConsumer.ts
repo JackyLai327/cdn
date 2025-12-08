@@ -1,13 +1,13 @@
 import { config } from "../../config";
 import { logger } from "../../lib/logger";
-import { FileProcessingJob } from "../types/job";
+import { ProcessFileJob, DeleteFileJob } from "../types/job";
 import { DeleteMessageCommand, ReceiveMessageCommand, SQSClient } from "@aws-sdk/client-sqs";
 
 export class SqsConsumer {
   private sqs: SQSClient;
 
   constructor(
-    private handleJob: (job: FileProcessingJob) => Promise<void>
+    private handleJob: (job: ProcessFileJob | DeleteFileJob) => Promise<void>
   ) {
     this.sqs = new SQSClient({
       region: config.S3_REGION,
@@ -38,7 +38,7 @@ export class SqsConsumer {
         }
 
         for (const message of response.Messages) {
-          const body = JSON.parse(message.Body!) as FileProcessingJob;
+          const body = JSON.parse(message.Body!) as ProcessFileJob | DeleteFileJob;
           try {
             await this.handleJob(body);
 

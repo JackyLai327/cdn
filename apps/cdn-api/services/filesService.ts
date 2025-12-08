@@ -1,5 +1,6 @@
 import { v4 as uuid } from "uuid";
 import { logger } from "../lib/logger.js";
+import { JobType } from "../types/job.js";
 import { DBService } from "./dbService.js";
 import { config } from "../config/index.js";
 import { QueueService } from "./queueService.js";
@@ -21,7 +22,7 @@ export class FilesService {
     private dbService: DBService,
     private queueService: QueueService,
     private storageService: StorageService
-  ) {}
+  ) { }
 
   async initiateUpload(params: {
     userId: string;
@@ -83,6 +84,7 @@ export class FilesService {
 
     // Send to queue
     await this.queueService.sendJob({
+      type: JobType.PROCESS_FILE,
       fileId,
       storageKey,
       userId,
@@ -179,12 +181,15 @@ export class FilesService {
         )
         : null;
 
+      const status = file.status;
+      const bustCache = status === "deleted";
+
       const thumbnail = thumbnailVariant && storageKey
         ? {
           width: thumbnailVariant.width,
           height: thumbnailVariant.height,
           bytes: thumbnailVariant.bytes,
-          cdnUrl: `${config.CDN_BASE_URL}/${config.S3_BUCKET_PROCESSED}/${thumbnailVariant.key}`,
+          cdnUrl: `${config.CDN_BASE_URL}/${config.S3_BUCKET_PROCESSED}/${thumbnailVariant.key}${bustCache ? `?bust=${Date.now()}` : ""}`,
         }
         : null;
 
@@ -217,5 +222,22 @@ export class FilesService {
   async countFiles(userId: string) {
     const result = await this.dbService.countFiles(userId);
     return result;
+  }
+
+  async requestDelete(fileId: string) {
+    const file = await this.dbService.getFileById(fileId);
+    if (!file) {
+      throw new NotFoundError("File not found");
+    }
+
+    if (file.status === 'deleted') return;
+
+    await this.dbService.updateStatus(fileId, 'pending_delete');
+
+    await this.queueService.sendJob({
+      type: JobType.DELETE_FILE,
+      fileId,
+      userId: file.user_id,
+    });
   }
 }

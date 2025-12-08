@@ -35,6 +35,14 @@ export class DBService implements IDBService {
     )
     return result.rows[0]
   }
+
+  async markDeleted(fileId: string): Promise<void> {
+    await this.updateStatus(fileId, "deleted");
+    await this.db.query(
+      `UPDATE files SET deleted_at=NOW() WHERE id=$1;`,
+      [fileId]
+    )
+  }
 }
 
 export const dbService = new DBService();

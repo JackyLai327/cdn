@@ -40,3 +40,9 @@ export const listFilesQuerySchema = z.object({
 })
 
 export type ListFilesQuerySchema = z.infer<typeof listFilesQuerySchema>
+
+export const deleteFileParamsSchema = z.object({
+  id: z.string().uuid(),
+})
+
+export type DeleteFileParamsSchema = z.infer<typeof deleteFileParamsSchema>

@@ -21,4 +21,10 @@ export interface IDBService {
    * @param fileId
    */
   getFile(fileId: string): Promise<FileMetadata>
+
+  /**
+   * Mark a file as deleted
+   * @param fileId
+   */
+  markDeleted(fileId: string): Promise<void>
 }

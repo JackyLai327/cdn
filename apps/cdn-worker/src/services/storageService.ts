@@ -1,7 +1,7 @@
 import { Readable } from "stream";
 import { config } from "../../config";
 import { IStorageService } from "./interfaces/storage";
-import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { DeleteObjectsCommand, GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
 export class StorageService implements IStorageService {
   private s3: S3Client;
@@ -44,6 +44,28 @@ export class StorageService implements IStorageService {
     })
 
     await this.s3.send(command);
+  }
+
+  async deleteFiles(keys: string[]) {
+    const rawKeys = keys.filter((key) => key.startsWith("raw/"));
+    const processedKeys = keys.filter((key) => key.startsWith("processed/"));
+
+    const deleteRawCommand = new DeleteObjectsCommand({
+      Bucket: config.S3_BUCKET_RAW,
+      Delete: {
+        Objects: rawKeys.map((key) => ({ Key: key })),
+      },
+    })
+
+    const deleteProcessedCommand = new DeleteObjectsCommand({
+      Bucket: config.S3_BUCKET_PROCESSED,
+      Delete: {
+        Objects: processedKeys.map((key) => ({ Key: key })),
+      },
+    })
+
+    await this.s3.send(deleteRawCommand);
+    await this.s3.send(deleteProcessedCommand);
   }
 }
 

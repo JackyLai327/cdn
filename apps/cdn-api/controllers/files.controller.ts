@@ -8,6 +8,7 @@ import {
   completeUploadSchema,
   initiateUploadSchema,
   listFilesQuerySchema,
+  deleteFileParamsSchema,
 } from "./schemas/files.schema.js";
 
 export const initiateUpload =
@@ -67,9 +68,11 @@ export const getFileById =
 
         const result = await filesService.getFile(parsed.data.id);
         if (!result) {
-          const response = ApiResponse.error("File not found", 404);
-          return res.status(response.statusCode).json(response.data);
+          throw new NotFoundError("File not found");
         }
+
+        const status = result.status;
+        const bustCache = status === "deleted";
 
         const variants = (result.variants || []).map((v) => {
           return {
@@ -77,7 +80,7 @@ export const getFileById =
             height: v.height,
             bytes: v.bytes,
             url: v.url,
-            cdnUrl: `${config.CDN_BASE_URL}/${config.S3_BUCKET_PROCESSED}/${v.key}`,
+            cdnUrl: `${config.CDN_BASE_URL}/${config.S3_BUCKET_PROCESSED}/${v.key}${bustCache ? `?bust=${Date.now()}` : ""}`,
           };
         });
 
@@ -132,3 +135,38 @@ export const listFilesHandler =
         next(error);
       }
     };
+
+export const deleteFileHandler =
+  (filesService: FilesService) =>
+    async (req: Request, res: Response, next: NextFunction) => {
+      try {
+        const parsed = deleteFileParamsSchema.safeParse(req.params);
+        if (!parsed.success) {
+          throw new BadRequestError("Invalid file ID");
+        }
+
+        const { id } = parsed.data;
+        const file = await filesService.getFile(id);
+        if (!file) {
+          throw new NotFoundError("File not found");
+        }
+
+        if (file.status === "deleted") {
+          const response = ApiResponse.success("File is already deleted.");
+          return res.status(response.statusCode).json(response.data);
+        }
+
+        if (file.status === "pending_delete") {
+          const response = ApiResponse.success("File delete is already pending.");
+          return res.status(response.statusCode).json(response.data);
+        }
+
+        await filesService.requestDelete(id);
+
+        const response = ApiResponse.success("File delete requested.");
+
+        return res.status(response.statusCode).json(response.data);
+      } catch (error) {
+        next(error);
+      }
+    }
