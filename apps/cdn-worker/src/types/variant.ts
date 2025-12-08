@@ -1,4 +1,6 @@
 export type Variant = {
-  size: number;
+  width: number;
+  height: number | null;
+  bytes: number;
   key: string;
 }

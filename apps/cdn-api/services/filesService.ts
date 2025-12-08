@@ -1,4 +1,5 @@
 import { v4 as uuid } from "uuid";
+import { logger } from "../lib/logger.js";
 import { DBService } from "./dbService.js";
 import { config } from "../config/index.js";
 import { QueueService } from "./queueService.js";
@@ -6,7 +7,9 @@ import { NotFoundError } from "../lib/errors.js";
 import { StorageService } from "./storageService.js";
 
 type VariantRecord = {
-  size: number,
+  width: number,
+  height: number,
+  bytes: number,
   key: string
 }
 
@@ -91,6 +94,8 @@ export class FilesService {
 
   async getFile(fileId: string) {
     const row = await this.dbService.getFileById(fileId);
+    const storageKey = row.storage_key;
+
     if (!row) {
       throw new NotFoundError("File not found");
     }
@@ -101,7 +106,7 @@ export class FilesService {
     let originalFileUrl: string | null = null;
     if (row.status === "uploaded" || row.status === "processing" || row.status === "ready") {
       originalFileUrl = await this.storageService.generatePresignedDownloadURL({
-        key: row.storageKey,
+        key: storageKey,
         bucket: config.S3_BUCKET_RAW
       });
     }
@@ -115,7 +120,9 @@ export class FilesService {
         });
 
         return {
-          size: v.size,
+          width: v.width,
+          height: v.height,
+          bytes: v.bytes,
           key: v.key,
           url,
         }

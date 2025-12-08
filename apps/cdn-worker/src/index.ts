@@ -1,10 +1,12 @@
+import sharp from "sharp";
 import { config } from "../config";
 import { logger } from "../lib/logger";
+import { Variant } from "./types/variant";
 import { FileProcessingJob } from "./types/job";
 import { dbService } from "./services/dbService";
 import { SqsConsumer } from "./queue/sqsConsumer";
 import { storageService } from "./services/storageService";
-import { imageProcessor } from "./services/imageProcessor";;
+import { imageProcessor } from "./services/imageProcessor";
 
 
 async function handleJob(job: FileProcessingJob) {
@@ -20,12 +22,14 @@ async function handleJob(job: FileProcessingJob) {
     // 1. Get file metadata
     const file = await dbService.getFile(fileId);
 
-    const { mimeType } = file;
+    logger.error(JSON.stringify(file));
+
+    const mimeType = file.mime_type;
 
     // 2. Download raw file
     const raw = await storageService.downloadFile(config.S3_BUCKET_RAW, storageKey)
 
-    const variants = [];
+    const variants: Variant[] = [];
     const fileName = storageKey.split("/").pop();
 
     // 3. Process sizes
@@ -40,8 +44,12 @@ async function handleJob(job: FileProcessingJob) {
         mimeType
       )
 
+      const imageMetadata = await sharp(processed).metadata();
+
       variants.push({
-        size,
+        width: imageMetadata.width ?? size,
+        height: imageMetadata.height ?? null,
+        bytes: processed.length,
         key: processedKey,
       })
     }

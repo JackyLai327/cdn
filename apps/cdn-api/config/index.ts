@@ -28,6 +28,8 @@ const envSchema = z.object({
   // Queue (SQS / LocalStack)
   SQS_ENDPOINT: z.string().optional(),
   QUEUE_URL: z.string(),
+
+  CDN_BASE_URL: z.string(),
 });
 
 const parsed = envSchema.safeParse(process.env);

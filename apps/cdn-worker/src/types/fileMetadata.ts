@@ -2,13 +2,13 @@ import { Variant } from "./variant";
 
 export type FileMetadata = {
   id: string,
-  userId: string,
-  originalFilename: string,
-  mimeType: string,
-  sizeBytes: number,
-  storageKey: string,
+  user_id: string,
+  original_filename: string,
+  mime_type: string,
+  size_bytes: number,
+  storage_key: string,
   variants: Variant[],
   status: string,
-  createdAt: Date,
-  updatedAt: Date,
+  created_at: Date,
+  updated_at: Date,
 }

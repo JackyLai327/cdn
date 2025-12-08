@@ -1,6 +1,7 @@
-import { BadRequestError } from "../lib/errors.js";
+import { config } from "../config/index.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import type { FilesService } from "../services/filesService.js";
+import { BadRequestError, NotFoundError } from "../lib/errors.js";
 import { type Request, type Response, type NextFunction } from "express";
 import { completeUploadSchema, fileIdParamsSchema, initiateUploadSchema } from "./schemas/files.schema.js";
 
@@ -46,8 +47,26 @@ export const getFileById = (filesService: FilesService) =>
         throw new BadRequestError("Invalid file ID");
       }
 
-      const result = filesService.getFile(parsed.data.id);
-      const response = ApiResponse.success(result, "File retrieved successfully");
+      const result = await filesService.getFile(parsed.data.id);
+      if (!result) {
+        const response = ApiResponse.error('File not found', 404);
+        return res.status(response.statusCode).json(response.data);
+      }
+
+      const variants = (result.variants || []).map((v) => {
+        return {
+          width: v.width,
+          height: v.height,
+          bytes: v.bytes,
+          url: v.url,
+          cdnUrl: `${config.CDN_BASE_URL}/${config.S3_BUCKET_PROCESSED}/${v.key}`,
+        }
+      })
+
+      const response = ApiResponse.success({
+        ...result,
+        variants,
+      }, "File retrieved successfully");
 
       return res.status(response.statusCode).json(response.data);
     } catch (error) {
