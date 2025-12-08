@@ -7,11 +7,11 @@ import { NotFoundError } from "../lib/errors.js";
 import { StorageService } from "./storageService.js";
 
 type VariantRecord = {
-  width: number,
-  height: number,
-  bytes: number,
-  key: string
-}
+  width: number;
+  height: number;
+  bytes: number;
+  key: string;
+};
 
 /**
  * File service - Orchestrates file upload and processing logic
@@ -20,8 +20,8 @@ export class FilesService {
   constructor(
     private dbService: DBService,
     private queueService: QueueService,
-    private storageService: StorageService,
-  ) { }
+    private storageService: StorageService
+  ) {}
 
   async initiateUpload(params: {
     userId: string;
@@ -104,10 +104,14 @@ export class FilesService {
 
     // Original file URL (from RAW bucket)
     let originalFileUrl: string | null = null;
-    if (row.status === "uploaded" || row.status === "processing" || row.status === "ready") {
+    if (
+      row.status === "uploaded" ||
+      row.status === "processing" ||
+      row.status === "ready"
+    ) {
       originalFileUrl = await this.storageService.generatePresignedDownloadURL({
         key: storageKey,
-        bucket: config.S3_BUCKET_RAW
+        bucket: config.S3_BUCKET_RAW,
       });
     }
 
@@ -116,7 +120,7 @@ export class FilesService {
       variantsRaw.map(async (v) => {
         const url = await this.storageService.generatePresignedDownloadURL({
           key: v.key,
-          bucket: config.S3_BUCKET_PROCESSED
+          bucket: config.S3_BUCKET_PROCESSED,
         });
 
         return {
@@ -125,9 +129,9 @@ export class FilesService {
           bytes: v.bytes,
           key: v.key,
           url,
-        }
+        };
       })
-    )
+    );
 
     return {
       id: row.id,
@@ -140,6 +144,78 @@ export class FilesService {
       updatedAt: row.updated_at,
       variants,
       originalFileUrl,
-    }
+    };
+  }
+
+  async listFiles(params: {
+    userId: string;
+    page: number;
+    pageSize: number;
+    sortBy: string;
+    sortOrder: string;
+  }) {
+    const { userId, page, pageSize, sortBy, sortOrder } = params;
+
+    const [result, totalItems] = await Promise.all([
+      this.dbService.listFiles(
+        userId,
+        page,
+        pageSize,
+        sortBy,
+        sortOrder
+      ),
+      this.dbService.countFiles(userId)
+    ])
+
+    const items = result.files.map((file) => {
+      const variants = file.variants || [];
+      const storageKey = file.storage_key;
+
+      const thumbnailVariant = variants.length > 0
+        ? variants.reduce((smallest: VariantRecord, v: VariantRecord) =>
+          !smallest || (v.width ?? Infinity) < (smallest.width ?? Infinity)
+            ? v
+            : smallest
+        )
+        : null;
+
+      const thumbnail = thumbnailVariant && storageKey
+        ? {
+          width: thumbnailVariant.width,
+          height: thumbnailVariant.height,
+          bytes: thumbnailVariant.bytes,
+          cdnUrl: `${config.CDN_BASE_URL}/${config.S3_BUCKET_PROCESSED}/${thumbnailVariant.key}`,
+        }
+        : null;
+
+      return {
+        id: file.id,
+        userId: file.user_id,
+        originalFilename: file.original_filename,
+        mimeType: file.mime_type,
+        sizeBytes: file.size_bytes,
+        status: file.status,
+        createdAt: file.created_at,
+        updatedAt: file.updated_at,
+        thumbnail,
+      };
+    });
+
+    const totalPages = Math.ceil(totalItems / pageSize);
+
+    return {
+      items,
+      pagination: {
+        page,
+        pageSize,
+        totalPages,
+        totalItems,
+      }
+    };
+  }
+
+  async countFiles(userId: string) {
+    const result = await this.dbService.countFiles(userId);
+    return result;
   }
 }

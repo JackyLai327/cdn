@@ -6,12 +6,12 @@ export interface IDBService {
    * @returns Promise<void>: Resolves when the file record is created
    */
   createFileRecord(data: {
-    id: string,
-    userId: string,
-    originalFilename: string,
-    mimeType: string,
-    sizeBytes: number,
-    storageKey: string,
+    id: string;
+    userId: string;
+    originalFilename: string;
+    mimeType: string;
+    sizeBytes: number;
+    storageKey: string;
   }): Promise<void>;
 
   /**
@@ -47,15 +47,41 @@ export interface IDBService {
    * @returns Promise<{...}>: Resolves with the file record
    */
   getFileById(id: string): Promise<{
-    id: string,
-    userId: string,
-    originalFilename: string,
-    mimeType: string,
-    sizeBytes: number,
-    storageKey: string,
-    status: string,
-    variants: string[],
-    createdAt: Date,
-    updatedAt: Date,
+    id: string;
+    userId: string;
+    originalFilename: string;
+    mimeType: string;
+    sizeBytes: number;
+    storageKey: string;
+    status: string;
+    variants: string[];
+    createdAt: Date;
+    updatedAt: Date;
   }>;
+
+  /**
+   * List files for a user
+   *
+   * @param userId: User ID
+   * @param page: Page number
+   * @param pageSize: Page size
+   * @param sortBy: Sort by field
+   * @param sortOrder: Sort order
+   * @returns Promise<{...}>: Resolves with the list of files
+   */
+  listFiles(
+    userId: string,
+    page: number,
+    pageSize: number,
+    sortBy: string,
+    sortOrder: string
+  ): Promise<{ files: any[]; total: number }>;
+
+  /**
+   * Count the number of files for a user
+   *
+   * @param userId: User ID
+   * @returns Promise<number>: Resolves with the count of files
+   */
+  countFiles(userId: string): Promise<number>;
 }

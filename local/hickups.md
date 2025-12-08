@@ -34,3 +34,16 @@
     `mc alias set local http://minio:9000 minio minio123`
 5. Apply bucket policy
     `mc anonymous set download local/cdn-processed`
+
+## Files kept being downloaded automatically instead of displaying in browser when cdn URL is opened in browser
+
+### Debug (Files kept being downloaded automatically instead of displaying in browser when cdn URL is opened in browser)
+
+1. Check headers of response
+2. Check Content-Type header
+3. Check Content-Disposition header
+
+### Fix (Files kept being downloaded automatically instead of displaying in browser when cdn URL is opened in browser)
+
+1. Content header (after process) is not correctly set
+2. Undefined content-header confuses browser

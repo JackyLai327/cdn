@@ -3,7 +3,7 @@ import { dbService } from "../services/dbService.js";
 import { queueService } from "../services/queueService.js";
 import { FilesService } from "../services/filesService.js";
 import { storageService } from "../services/storageService.js";
-import { completeUpload, getFileById, initiateUpload } from "../controllers/files.controller.js";
+import { completeUpload, getFileById, initiateUpload, listFilesHandler } from "../controllers/files.controller.js";
 
 const router = express.Router();
 
@@ -17,5 +17,8 @@ router.post("/complete", completeUpload(filesService));
 
 // GET /api/files/:id
 router.get("/:id", getFileById(filesService));
+
+// GET /api/files
+router.get("/", listFilesHandler(filesService));
 
 export default router;

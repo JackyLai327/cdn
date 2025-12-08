@@ -22,3 +22,21 @@ export const fileIdParamsSchema = z.object({
 })
 
 export type FileIdParamsSchema = z.infer<typeof fileIdParamsSchema>
+
+export const listFilesQuerySchema = z.object({
+  userId: z.string().min(1),
+  page: z
+    .string()
+    .optional()
+    .transform((val) => (val ? parseInt(val, 10) : 1))
+    .pipe(z.number().int().min(1)),
+  pageSize: z
+    .string()
+    .optional()
+    .transform((val) => (val ? parseInt(val, 10) : 20))
+    .pipe(z.number().int().min(1).max(100)),
+  sortBy: z.enum(["createdAt", "updatedAt"]).optional().default("createdAt"),
+  sortOrder: z.enum(["asc", "desc"]).optional().default("desc"),
+})
+
+export type ListFilesQuerySchema = z.infer<typeof listFilesQuerySchema>
