@@ -46,3 +46,9 @@ export const deleteFileParamsSchema = z.object({
 })
 
 export type DeleteFileParamsSchema = z.infer<typeof deleteFileParamsSchema>
+
+export const deleteFilesForUserParamsSchema = z.object({
+  userId: z.string().min(1),
+})
+
+export type DeleteFilesForUserParamsSchema = z.infer<typeof deleteFilesForUserParamsSchema>

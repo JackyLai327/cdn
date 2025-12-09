@@ -87,6 +87,14 @@ export class DBService implements IDBService {
     const result = await pool.query(`SELECT COUNT(*) AS count FROM files WHERE user_id=$1;`, [userId]);
     return result.rows[0].count;
   }
+
+  async getActiveFilesByUser(userId: string): Promise<{id: string}[]> {
+    const result = await pool.query(
+      `SELECT id from files WHERE user_id=$1 AND status <> 'deleted';`,
+      [userId]
+    )
+    return result.rows as {id: string}[]
+  }
 }
 
 export const dbService = new DBService();

@@ -22,6 +22,13 @@ export const processFile = async (job: ProcessFileJob) => {
     // 2. Download raw file
     const raw = await storageService.downloadFile(config.S3_BUCKET_RAW, storageKey)
 
+    logger.info(`Worker: downloaded raw file ${storageKey}, size: ${raw.length} bytes`);
+    if (raw.length > 0) {
+      logger.info(`Worker: first 20 bytes: ${raw.subarray(0, 20).toString('hex')}`);
+    } else {
+      logger.warn(`Worker: downloaded file is empty`);
+    }
+
     const variants: Variant[] = [];
     const fileName = storageKey.split("/").pop();
 

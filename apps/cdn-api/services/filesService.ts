@@ -240,4 +240,26 @@ export class FilesService {
       userId: file.user_id,
     });
   }
+
+  async requestDeleteForUser(userId: string) {
+    const files = await this.dbService.getActiveFilesByUser(userId);
+
+    if (files.length === 0) {
+      return { count: 0 };
+    }
+
+    const batchSize = 50;
+
+    for (let i = 0; i < files.length; i += batchSize) {
+      const batch = files.slice(i, i + batchSize);
+
+      await Promise.all(
+        batch.map(async (file) => {
+          await this.requestDelete(file.id);
+        })
+      );
+    }
+
+    return { count: files.length };
+  }
 }

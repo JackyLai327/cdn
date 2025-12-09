@@ -84,4 +84,12 @@ export interface IDBService {
    * @returns Promise<number>: Resolves with the count of files
    */
   countFiles(userId: string): Promise<number>;
+
+  /**
+   * Get active files for a user
+   *
+   * @param userId: User ID
+   * @returns Promise<{...}>: Resolves with the list of active files
+   */
+  getActiveFilesByUser(userId: string): Promise<{ id: string }[]>;
 }

@@ -1,0 +1,26 @@
+### Initiate upload
+POST http://localhost:3000/api/files/initiate
+Content-Type: application/json
+
+{
+    "userId": "user123",
+    "originalFilename": "santa.jpg",
+    "mimeType": "image/jpeg",
+    "sizeBytes": 30801
+}
+
+### Complete upload
+POST http://localhost:3000/api/files/complete
+Content-Type: application/json
+
+{
+    "fileId": "e4a1d633-a50e-4778-8f94-4b236d7c974e",
+    "storageKey": "raw/user123/e4a1d633-a50e-4778-8f94-4b236d7c974e-santa.jpg",
+    "userId": "user123"
+}
+
+### Get file
+GET http://localhost:3000/api/files?userId=user123
+
+### Delete for user
+DELETE http://localhost:3000/api/files/user/user123
