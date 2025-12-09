@@ -29,6 +29,7 @@ const envSchema = z.object({
   SQS_ENDPOINT: z.string().optional(),
   QUEUE_URL: z.string(),
 
+  // CDN container's base URL
   CDN_BASE_URL: z.string(),
 });
 

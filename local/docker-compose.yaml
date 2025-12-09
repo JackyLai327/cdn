@@ -101,6 +101,9 @@ services:
 
       SQS_ENDPOINT: http://localstack:4566
       QUEUE_URL: http://localstack:4566/000000000000/cdn-jobs
+
+      PERMANENT_DELETE_AFTER_DAYS: 30
+      PURGE_BATCH_SIZE: 100
     ports:
       - "8787:8787"
     depends_on:

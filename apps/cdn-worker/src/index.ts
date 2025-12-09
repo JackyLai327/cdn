@@ -1,4 +1,5 @@
 import { logger } from "../lib/logger";
+import { startPurgeLoop } from "./cron/purger";
 import { deleteFile } from "./jobs/deleteFile";
 import { processFile } from "./jobs/processFile";
 import { SqsConsumer } from "./queue/sqsConsumer";
@@ -19,5 +20,13 @@ async function handleJob(job: ProcessFileJob | DeleteFileJob) {
   }
 }
 
-const consumer = new SqsConsumer(handleJob);
-consumer.start();
+async function main() {
+  const consumer = new SqsConsumer(handleJob);
+  consumer.start();
+  startPurgeLoop();
+}
+
+main().catch((err) => {
+  logger.error("Worker: failed to start", err);
+  process.exit(1);
+})

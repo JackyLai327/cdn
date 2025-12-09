@@ -1,5 +1,5 @@
-import { Variant } from "../../types/variant"
-import { FileMetadata } from "../../types/fileMetadata"
+import { Variant } from "../../types/variant";
+import { FileMetadata } from "../../types/fileMetadata";
 
 export interface IDBService {
   /**
@@ -7,24 +7,40 @@ export interface IDBService {
    * @param fileId
    * @param status
    */
-  updateStatus(fileId: string, status: string): Promise<void>
+  updateStatus(fileId: string, status: string): Promise<void>;
 
   /**
    * Add variants to a file
    * @param fileId
    * @param variants
    */
-  addVariants(fileId: string, variants: Variant[]): Promise<void>
+  addVariants(fileId: string, variants: Variant[]): Promise<void>;
 
   /**
    * Get a file by ID
    * @param fileId
    */
-  getFile(fileId: string): Promise<FileMetadata>
+  getFile(fileId: string): Promise<FileMetadata>;
 
   /**
    * Mark a file as deleted
    * @param fileId
    */
-  markDeleted(fileId: string): Promise<void>
+  markDeleted(fileId: string): Promise<void>;
+
+  /**
+   * Get a list of file IDs that are ready for purge
+   * @param limit
+   * @param olderThanDays
+   */
+  getFilesReadyForPurge(
+    limit: number,
+    olderThanDays: number
+  ): Promise<{ id: string }[]>;
+
+  /**
+   * Hard delete files from the database
+   * @param ids
+   */
+  hardDeleteFiles(ids: string[]): Promise<void>;
 }

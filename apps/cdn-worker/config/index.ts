@@ -28,6 +28,9 @@ const envSchema = z.object({
   // Queue (SQS / LocalStack)
   SQS_ENDPOINT: z.string(),
   QUEUE_URL: z.string(),
+
+  PERMANENT_DELETE_AFTER_DAYS: z.string().default("30"),
+  PURGE_BATCH_SIZE: z.string().default("100"),
 });
 
 const parsed = envSchema.safeParse(process.env);
