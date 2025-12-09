@@ -1,5 +1,7 @@
+import { config } from "../../config";
 import { dbService } from "./dbService";
 import { logger } from "../../lib/logger";
+import { cdnService } from "./cdnService";
 import { Variant } from "../types/variant";
 import { storageService } from "./storageService";
 import { IDeleteProcessor } from "./interfaces/deleteProcessor";
@@ -24,6 +26,12 @@ export class DeleteProcessor implements IDeleteProcessor {
     await dbService.markDeleted(fileId);
 
     logger.info(`Worker: deleted file ${fileId} and ${keys.length} objects`);
+
+    const cdnPaths = keys.map((key) => {
+      return `/cdn/${config.S3_BUCKET_PROCESSED}/${key}`;
+    })
+
+    await cdnService.invalidatePaths(cdnPaths);
   }
 }
 

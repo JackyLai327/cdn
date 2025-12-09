@@ -31,6 +31,9 @@ const envSchema = z.object({
 
   PERMANENT_DELETE_AFTER_DAYS: z.string().default("30"),
   PURGE_BATCH_SIZE: z.string().default("100"),
+
+  CLOUDFRONT_DISTRIBUTION_ID: z.string().default(""),
+  ENABLE_CLOUDFRONT_INVALIDATION: z.boolean().default(true),
 });
 
 const parsed = envSchema.safeParse(process.env);
