@@ -70,6 +70,8 @@ services:
       QUEUE_URL: http://localstack:4566/000000000000/cdn-jobs
 
       CDN_BASE_URL: http://localhost:8080/cdn
+
+      JWT_SECRET: ahhsecret
     ports:
       - "3000:3000"
     depends_on:

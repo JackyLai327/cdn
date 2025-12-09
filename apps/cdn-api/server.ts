@@ -9,6 +9,8 @@ import { config } from "./config/index.js";
 import filesRoutes from "./routes/files.routes.js";
 import healthRoutes from "./routes/health.routes.js";
 import { limiter } from "./middlewares/rateLimiter.js";
+import devAuthRoutes from "./routes/auth.routes.js";
+import { authMiddleware } from "./middlewares/auth.js";
 import { httpLogger } from "./middlewares/httpLogger.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
 import { notFoundHandler } from "./middlewares/notFoundHandler.js";
@@ -41,7 +43,13 @@ app.use(limiter);
 app.use(express.json({ limit: "10mb" }));
 app.use(hpp());
 
-// Routes
+// Routes (no auth required)
+app.use("/api/auth", devAuthRoutes);
+
+// Auth Middleware
+app.use(authMiddleware);
+
+// Routes (auth required)
 app.use("/api", healthRoutes);
 app.use("/api/files", filesRoutes);
 

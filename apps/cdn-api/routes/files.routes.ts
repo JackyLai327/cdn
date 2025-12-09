@@ -22,9 +22,9 @@ router.get("/:id", getFileById(filesService));
 router.get("/", listFilesHandler(filesService));
 
 // DELETE /api/files/:id
-router.delete("/:id", deleteFileHandler(filesService));
+router.delete("/file/:id", deleteFileHandler(filesService));
 
 // DELETE /api/files/user/:userId
-router.delete("/user/:userId", deleteFilesForUserHandler(filesService));
+router.delete("/user", deleteFilesForUserHandler(filesService));
 
 export default router;

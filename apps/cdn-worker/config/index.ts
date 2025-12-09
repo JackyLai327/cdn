@@ -33,7 +33,7 @@ const envSchema = z.object({
   PURGE_BATCH_SIZE: z.string().default("100"),
 
   CLOUDFRONT_DISTRIBUTION_ID: z.string().default(""),
-  ENABLE_CLOUDFRONT_INVALIDATION: z.boolean().default(true),
+  ENABLE_CLOUDFRONT_INVALIDATION: z.string().default("true"),
 });
 
 const parsed = envSchema.safeParse(process.env);

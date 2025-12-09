@@ -4,8 +4,8 @@ import { JobType } from "../types/job.js";
 import { DBService } from "./dbService.js";
 import { config } from "../config/index.js";
 import { QueueService } from "./queueService.js";
-import { NotFoundError } from "../lib/errors.js";
 import { StorageService } from "./storageService.js";
+import { ForbiddenError, NotFoundError } from "../lib/errors.js";
 
 type VariantRecord = {
   width: number;
@@ -94,12 +94,16 @@ export class FilesService {
     return { status: "processing" };
   }
 
-  async getFile(fileId: string) {
+  async getFile(fileId: string, userId: string) {
     const row = await this.dbService.getFileById(fileId);
-    const storageKey = row.storage_key;
-
     if (!row) {
       throw new NotFoundError("File not found");
+    }
+
+    const storageKey = row.storage_key;
+
+    if (row.user_id !== userId) {
+      throw new ForbiddenError("You are not authorized to access this file");
     }
 
     const variantsRaw: VariantRecord[] = row.variants || [];

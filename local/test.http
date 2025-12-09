@@ -1,5 +1,17 @@
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyMTIzIiwiZW1haWwiOiJ1c2VyMTIzQGV4YW1wbGUuY29tIiwiaWF0IjoxNzY1MjU3NjExLCJleHAiOjE3NjUyNjEyMTF9.m4tcm92vqezlUzcw3ocSPqCefE9il6VxT9nmp4E0xNQ
+
+### Dev Login
+POST http://localhost:3000/api/auth/dev/login
+Content-Type: application/json
+
+{
+    "userId": "user123",
+    "email": "user123@example.com"
+}
+
 ### Initiate upload
 POST http://localhost:3000/api/files/initiate
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
@@ -11,16 +23,23 @@ Content-Type: application/json
 
 ### Complete upload
 POST http://localhost:3000/api/files/complete
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-    "fileId": "e4a1d633-a50e-4778-8f94-4b236d7c974e",
-    "storageKey": "raw/user123/e4a1d633-a50e-4778-8f94-4b236d7c974e-santa.jpg",
+    "fileId": "ffab8492-33cd-43c3-b596-eed5f8ce0d2c",
+    "storageKey": "raw/user123/ffab8492-33cd-43c3-b596-eed5f8ce0d2c-santa.jpg",
     "userId": "user123"
 }
 
 ### Get file
-GET http://localhost:3000/api/files?userId=user123
+GET http://localhost:3000/api/files
+Authorization: Bearer {{token}}
 
 ### Delete for user
-DELETE http://localhost:3000/api/files/user/user123
+DELETE http://localhost:3000/api/files/user
+Authorization: Bearer {{token}}
+
+### Delete single file
+DELETE http://localhost:3000/api/files/file/ffab8492-33cd-43c3-b596-eed5f8ce0d2c
+Authorization: Bearer {{token}}

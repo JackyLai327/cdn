@@ -31,6 +31,8 @@ const envSchema = z.object({
 
   // CDN container's base URL
   CDN_BASE_URL: z.string(),
+
+  JWT_SECRET: z.string(),
 });
 
 const parsed = envSchema.safeParse(process.env);
