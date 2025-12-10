@@ -1,6 +1,6 @@
-import { logger } from "../../lib/logger";
-import { DeleteFileJob } from "../types/job";
-import { deleteProcessor } from "../services/deleteProcessor";
+import { logger } from "../../lib/logger.js";
+import { DeleteFileJob } from "../types/job.js";
+import { deleteProcessor } from "../services/deleteProcessor.js";
 
 export const deleteFile = async (job: DeleteFileJob) => {
   const { fileId, userId } = job;

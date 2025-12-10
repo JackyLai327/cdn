@@ -1,11 +1,11 @@
 import sharp from "sharp";
-import { config } from "../../config";
-import { logger } from "../../lib/logger";
-import { Variant } from "../types/variant";
-import { ProcessFileJob } from "../types/job";
-import { dbService } from "../services/dbService";
-import { storageService } from "../services/storageService";
-import { imageProcessor } from "../services/imageProcessor";
+import { config } from "../../config/index.js";
+import { logger } from "../../lib/logger.js";
+import { Variant } from "../types/variant.js";
+import { ProcessFileJob } from "../types/job.js";
+import { dbService } from "../services/dbService.js";
+import { storageService } from "../services/storageService.js";
+import { imageProcessor } from "../services/imageProcessor.js";
 
 export const processFile = async (job: ProcessFileJob) => {
   const {

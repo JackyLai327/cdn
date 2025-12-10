@@ -1,10 +1,10 @@
-import { config } from "../../config";
-import { dbService } from "./dbService";
-import { logger } from "../../lib/logger";
-import { cdnService } from "./cdnService";
-import { Variant } from "../types/variant";
-import { storageService } from "./storageService";
-import { IDeleteProcessor } from "./interfaces/deleteProcessor";
+import { config } from "../../config/index.js";
+import { dbService } from "./dbService.js";
+import { logger } from "../../lib/logger.js";
+import { cdnService } from "./cdnService.js";
+import { Variant } from "../types/variant.js";
+import { storageService } from "./storageService.js";
+import { IDeleteProcessor } from "./interfaces/deleteProcessor.js";
 
 export class DeleteProcessor implements IDeleteProcessor {
 

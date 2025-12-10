@@ -1,7 +1,9 @@
 import { Readable } from "stream";
-import { config } from "../../config";
-import { IStorageService } from "./interfaces/storage";
+import { config } from "../../config/index.js";
+import { IStorageService } from "./interfaces/storage.js";
 import { DeleteObjectsCommand, GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+
+const isLocal = config.CDN_ENV === "local";
 
 export class StorageService implements IStorageService {
   private s3: S3Client;
@@ -9,12 +11,16 @@ export class StorageService implements IStorageService {
   constructor() {
     this.s3 = new S3Client({
       region: config.S3_REGION,
-      endpoint: config.S3_ENDPOINT,
-      forcePathStyle: true,
-      credentials: {
-        accessKeyId: config.S3_ACCESS_KEY_ID,
-        secretAccessKey: config.S3_SECRET_ACCESS_KEY,
-      }
+      ...(isLocal &&
+        {
+          endpoint: config.S3_ENDPOINT,
+          forcePathStyle: true,
+          credentials: {
+            accessKeyId: config.S3_ACCESS_KEY_ID,
+            secretAccessKey: config.S3_SECRET_ACCESS_KEY,
+          }
+        }
+      )
     });
   }
 

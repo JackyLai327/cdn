@@ -1,7 +1,9 @@
-import { config } from "../../config";
-import { logger } from "../../lib/logger";
-import { ProcessFileJob, DeleteFileJob } from "../types/job";
+import { logger } from "../../lib/logger.js";
+import { config } from "../../config/index.js";
+import { ProcessFileJob, DeleteFileJob } from "../types/job.js";
 import { DeleteMessageCommand, ReceiveMessageCommand, SQSClient } from "@aws-sdk/client-sqs";
+
+const isLocal = config.CDN_ENV === "local";
 
 export class SqsConsumer {
   private sqs: SQSClient;
@@ -11,11 +13,13 @@ export class SqsConsumer {
   ) {
     this.sqs = new SQSClient({
       region: config.S3_REGION,
-      endpoint: config.SQS_ENDPOINT, // For LocalStack
-      credentials: {
-        accessKeyId: config.S3_ACCESS_KEY_ID,
-        secretAccessKey: config.S3_SECRET_ACCESS_KEY,
-      }
+      ...(isLocal && {
+        endpoint: config.SQS_ENDPOINT, // For LocalStack
+        credentials: {
+          accessKeyId: config.S3_ACCESS_KEY_ID,
+          secretAccessKey: config.S3_SECRET_ACCESS_KEY,
+        }
+      })
     });
   }
 

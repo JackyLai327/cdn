@@ -1,6 +1,7 @@
 import { z } from "zod";
 import path from "path";
 import dotenv from "dotenv";
+import { logger } from "../lib/logger.js";
 
 // Load environment variables immediately
 const envFile = process.env.NODE_ENV === "production" ? ".env" : ".env.local";
@@ -33,12 +34,14 @@ const envSchema = z.object({
   CDN_BASE_URL: z.string(),
 
   JWT_SECRET: z.string(),
+
+  CDN_ENV: z.enum(["local", "aws"]).default("local"),
 });
 
 const parsed = envSchema.safeParse(process.env);
 
 if (!parsed.success) {
-  console.error("Invalid environment variables:", parsed.error.format());
+  logger.error(`Invalid environment variables: ${JSON.stringify(parsed.error.format())}`);
   process.exit(1);
 }
 

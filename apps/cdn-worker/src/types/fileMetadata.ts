@@ -1,4 +1,4 @@
-import { Variant } from "./variant";
+import { Variant } from "./variant.js";
 
 export type FileMetadata = {
   id: string,

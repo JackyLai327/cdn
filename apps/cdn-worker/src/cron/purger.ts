@@ -1,6 +1,6 @@
-import { config } from "../../config"
-import { logger } from "../../lib/logger"
-import { dbService } from "../services/dbService"
+import { config } from "../../config/index.js"
+import { logger } from "../../lib/logger.js"
+import { dbService } from "../services/dbService.js"
 
 export const startPurgeLoop = () => {
   const purge = async () => {

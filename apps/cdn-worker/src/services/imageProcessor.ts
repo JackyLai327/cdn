@@ -1,5 +1,5 @@
 import sharp from "sharp";
-import { IImageProcessor } from "./interfaces/imageProcessor";
+import { IImageProcessor } from "./interfaces/imageProcessor.js";
 
 export class ImageProcessor implements IImageProcessor {
   async resizeImage(

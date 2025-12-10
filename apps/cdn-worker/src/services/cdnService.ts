@@ -1,7 +1,7 @@
 import { randomUUID } from "crypto";
-import { config } from "../../config";
-import { logger } from "../../lib/logger";
-import { ICDNService } from "./interfaces/cdn";
+import { config } from "../../config/index.js";
+import { logger } from "../../lib/logger.js";
+import { ICDNService } from "./interfaces/cdn.js";
 import { CloudFrontClient, CreateInvalidationCommand } from "@aws-sdk/client-cloudfront";
 
 const client = new CloudFrontClient({

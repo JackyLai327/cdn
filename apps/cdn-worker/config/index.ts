@@ -34,6 +34,8 @@ const envSchema = z.object({
 
   CLOUDFRONT_DISTRIBUTION_ID: z.string().default(""),
   ENABLE_CLOUDFRONT_INVALIDATION: z.string().default("true"),
+
+  CDN_ENV: z.enum(["local", "aws"]).default("local"),
 });
 
 const parsed = envSchema.safeParse(process.env);

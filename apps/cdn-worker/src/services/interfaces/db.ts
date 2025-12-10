@@ -1,5 +1,5 @@
-import { Variant } from "../../types/variant";
-import { FileMetadata } from "../../types/fileMetadata";
+import { Variant } from "../../types/variant.js";
+import { FileMetadata } from "../../types/fileMetadata.js";
 
 export interface IDBService {
   /**

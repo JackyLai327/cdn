@@ -1,8 +1,8 @@
 import { Pool } from "pg";
-import { config } from "../../config";
-import { Variant } from "../types/variant";
-import { IDBService } from "./interfaces/db";
-import { FileMetadata } from "../types/fileMetadata";
+import { config } from "../../config/index.js";
+import { Variant } from "../types/variant.js";
+import { IDBService } from "./interfaces/db.js";
+import { FileMetadata } from "../types/fileMetadata.js";
 
 export class DBService implements IDBService {
   private db = new Pool({

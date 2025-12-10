@@ -1,14 +1,14 @@
 {
   "compilerOptions": {
-    "target": "es2020",
-    "module": "commonjs",
-    "outDir": "./dist",
+    "module": "nodenext",
+    "outDir": "dist",
     "rootDir": ".",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "nodenext",
   },
   "include": ["src/**/*", "config/**/*", "lib/**/*"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules"],
 }
