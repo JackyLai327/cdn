@@ -339,3 +339,23 @@ infra
   - ACM will give 1-2 CNAME records -> create them in Route53
   - Wait for certificate to be issued
 - Update ingress for HTTPS
+
+### Build apps
+
+- API Server
+- Worker (Queue + Processor)
+- Frontend
+
+### Setup CloudFront
+
+- Set up variables
+- Set up CloudFront module
+- Set up outputs
+- Set up CloudFront module environment (in the dev folder's cloudfront.tf)
+- Add S3 Policy for CloudFront to access
+
+### Setup Route53
+
+- Set up variables
+- Set up Route53 module
+- Set up Route53 module environment (in the dev folder's dns.tf)
