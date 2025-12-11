@@ -1,8 +1,9 @@
 module "cloudfront" {
   source = "../modules/cloudfront"
 
-  acm_certificate_arn = var.acm_certificate_arn
-  processed_bucket_regional_domain_name = module.s3.processed_bucket_regional_domain_name
+  domain_name = "cdn.dev.easy-cdn.com"
+  aliases = []
 
-
+  certificate_arn = "arn:aws:acm:us-east-1:XXXXXX~"
+  origin_bucket = module.s3_app_bucket.bucket_regional_domain_name
 }
