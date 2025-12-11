@@ -1,4 +1,4 @@
-resource "aws_route_53_record" "cdn_alias" {
+resource "aws_route53_record" "cdn_alias" {
   zone_id = var.hosted_zone_id
   name    = var.domain_name
   type    = "A"
