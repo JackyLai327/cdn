@@ -389,3 +389,10 @@ infra
 - Create a docker-compose.build.yaml file in the root directory (or prod folder)
 - Define the services and their build context
 - Define the image name and tag
+
+### Set up ECR (for images to be pushed to)
+
+- Set up variables
+- Set up ECR module
+- Set up ECR module environment (in the dev folder's ecr.tf)
+- Add ECR policy for the controller service account
