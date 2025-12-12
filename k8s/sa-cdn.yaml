@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cdn-service-account
+  namespace: cdn
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::791954933241:role/cdn-app-role

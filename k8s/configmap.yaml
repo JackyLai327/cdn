@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cdn-config
+  namespace: cdn
+data:
+  NODE_ENV: "production"
+  API_PORT: "3000"
+
+  DB_HOST: "cdn-db.cluster-xxxx.ap-southeast-2.rds.amazonaws.com" # TODO: This needs to be updated after infra is deployed
+  DB_PORT: "5432"
+  DB_NAME: "cdn_db"
+
+  S3_REGION: "ap-southeast-2"
+  S3_BUCKET_RAW: "cdn" # TODO: This needs to be updated after infra is deployed
+  S3_BUCKET_PROCESSED: "cdn" # TODO: This needs to be updated after infra is deployed
+
+  CDN_BASE_URL: "https://cdn.easy-cdn.com"
+
+  QUEUE_URL: "https://sqs.ap-southeast-2.amazonaws.com/123456789012/cdn-jobs" # TODO: This needs to be updated after infra is deployed
+
+  SQS_REGION: "ap-southeast-2"
+
+  ENABLE_CLOUDFRONT_INVALIDATION: "true"
+  PURGE_BATCH_SIZE: "10"
+  PERMANENT_DELETE_AFTER_DAYS: "30"

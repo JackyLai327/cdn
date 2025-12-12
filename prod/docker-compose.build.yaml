@@ -1,0 +1,15 @@
+version: "3.9"
+
+services:
+  cdn-api:
+    build:
+      context: ../apps/cdn-api
+      dockerfile: Dockerfile
+    image: ${ECR_REGISTRY}/cdn-api:${IMAGE_TAG}
+
+  cdn-worker:
+    build:
+      context: ../apps/cdn-worker
+      dockerfile: Dockerfile
+    image: ${ECR_REGISTRY}/cdn-worker:${IMAGE_TAG}
+

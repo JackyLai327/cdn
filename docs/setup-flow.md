@@ -359,3 +359,33 @@ infra
 - Set up variables
 - Set up Route53 module
 - Set up Route53 module environment (in the dev folder's dns.tf)
+
+### Kubernetes resources
+
+> ✅ **NOTE**:
+> Good YAMLs behave like lego blocks, not spaghetti
+
+| **Resource** | **Description** |
+| --- | --- |
+| Config Map | Configures the changes between environments |
+| Secrets | Stores sensitive data |
+| Deployment | Runtime orchestration |
+| Service | Exposes the application to the cluster |
+| Ingress | Exposes the application to the internet |
+| Horizontal Pod Autoscaler | Scales the application based on CPU and memory usage |
+| Service Account | IAM Permissions |
+
+### These YAMLs enforce
+
+- Apps don't rely on local state
+- Apps can be fully configured using environment variables
+- Apps can be replaced instantly
+- Logs are always available in stdout
+- Run as non-root for security reasons
+- Resource limits must be enforced to prevent noisy neighbors
+
+### Define docker-compose build files
+
+- Create a docker-compose.build.yaml file in the root directory (or prod folder)
+- Define the services and their build context
+- Define the image name and tag

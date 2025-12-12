@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cdn-api
+  namespace: cdn
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: cdn-api
+  template:
+    metadata:
+      labels:
+        app: cdn-api
+    spec:
+      containers:
+        - name: cdn-api
+          image: 791954933241.dkr.ecr.ap-southeast-2.amazonaws.com/cdn-api:latest # TODO: Update this after ECR is created
+          ports:
+            - containerPort: 3000
+          envFrom:
+            - configMapRef:
+              name: cdn-config
+            - secretRef:
+              name: cdn-secrets
+          resources:
+            limits:
+              memory: "512Mi"
+              cpu: "256m"
+            requests:
+              memory: "256Mi"
+              cpu: "128m"
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 5
