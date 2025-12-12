@@ -1,6 +1,6 @@
 ECR_REGISTRY=791954933241.dkr.ecr.ap-southeast-2.amazonaws.com
-ECR_API_URL=$(shell cd ../infra/envs/prod && terraform output -raw api_repository_urls | jq -r '."cdn-api"')
-ECR_WORKER_URL=$(shell cd ../infra/envs/prod && terraform output -raw api_repository_urls | jq -r '."cdn-worker"')
+ECR_API_URL=$(shell cd ../infra/envs/dev && terraform output -raw api_repository_urls | jq -r '."cdn-api"')
+ECR_WORKER_URL=$(shell cd ../infra/envs/dev && terraform output -raw api_repository_urls | jq -r '."cdn-worker"')
 IMAGE_TAG=latest
 
 login:

@@ -1,0 +1,42 @@
+name: CDN Worker CI
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'apps/cdn-worker/**' # * Triggers if files in this directory are changed
+      - '.github/workflows/ci-cdn-worker.yaml' # * Triggers if this file is changed
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./apps/cdn-worker # Set default folder for commands to run in
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+          cache: 'npm'
+          cache-dependency-path: apps/cdn-worker/package-lock.json
+
+      - name: Lint
+        run: npm run lint
+
+      # Tests if exists
+      # - name: Test
+      #   run: npm run test
+
+      - name: Built
+        run: npm run build

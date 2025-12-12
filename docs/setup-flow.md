@@ -396,3 +396,20 @@ infra
 - Set up ECR module
 - Set up ECR module environment (in the dev folder's ecr.tf)
 - Add ECR policy for the controller service account
+
+### Set up IAM roles for EKS service accounts to enable S3 access
+
+- Set up variables
+- Set up IAM module
+- Set up IAM module environment (in the dev folder's iam.tf)
+- Add IAM policy for the service account
+
+### Create Makefile
+
+- Create a Makefile in the root directory (or prod folder)
+
+### Create ci-cd pipelines
+
+- Create a .github/workflows folder in the root directory (or prod folder)
+- Use paths to filter the files to be built since this project is monorepo
+- Define the pipeline
