@@ -1,33 +1,35 @@
 apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: cdn-worker
   namespace: cdn
 spec:
   replicas: 2
+  serviceAccountName: cdn-service-account
   selector:
-    matchedLabels:
+    matchLabels:
       app: cdn-worker
-    template:
-      metadata:
-        labels:
-          app: cdn-worker
-      spec:
-        serviceAccountName: cdn-service-account
-        containers:
-          - name: cdn-worker
-            image: 791954933241.dkr.ecr.ap-southeast-2.amazonaws.com/cdn-worker:latest # TODO: Update this after ECR is created
-            envFrom:
-              - configMapRef:
-                name: cdn-config
-              - secretRef:
-                name: cdn-secrets
-            resources:
-              limits:
-                memory: "512Mi"
-                cpu: "500m"
-              requests:
-                memory: "256Mi"
-                cpu: "250m"
-            securityContext:
-              runAsNonRoot: true
-              runAsUser: 1000
+  template:
+    metadata:
+      labels:
+        app: cdn-worker
+    spec:
+      serviceAccountName: cdn-service-account
+      containers:
+        - name: cdn-worker
+          image: 791954933241.dkr.ecr.ap-southeast-2.amazonaws.com/cdn-worker:latest
+          envFrom:
+            - configMapRef:
+              name: cdn-config
+            - secretRef:
+              name: cdn-secrets
+          resources:
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000

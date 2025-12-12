@@ -5,6 +5,7 @@ metadata:
   namespace: cdn
 spec:
   replicas: 2
+  serviceAccountName: cdn-service-account
   selector:
     matchLabels:
       app: cdn-api
@@ -15,7 +16,7 @@ spec:
     spec:
       containers:
         - name: cdn-api
-          image: 791954933241.dkr.ecr.ap-southeast-2.amazonaws.com/cdn-api:latest # TODO: Update this after ECR is created
+          image: 791954933241.dkr.ecr.ap-southeast-2.amazonaws.com/cdn-api:latest
           ports:
             - containerPort: 3000
           envFrom:
