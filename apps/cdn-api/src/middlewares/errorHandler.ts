@@ -1,13 +1,12 @@
 import { logger } from "../../lib/logger.js"
 import { AppError } from "../../lib/errors.js"
 import { ApiResponse } from "../utils/apiResponse.js"
-import { type Request, type Response, type NextFunction } from "express";
+import { type Request, type Response } from "express";
 
 export const errorHandler = (
   err: unknown,
   _req: Request,
   res: Response,
-  _next: NextFunction
 ) => {
   let statusCode = 500;
   let message = "Internal server error";

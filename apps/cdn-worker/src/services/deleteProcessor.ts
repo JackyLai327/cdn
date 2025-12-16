@@ -8,7 +8,7 @@ import { IDeleteProcessor } from "./interfaces/deleteProcessor.js";
 
 export class DeleteProcessor implements IDeleteProcessor {
 
-  async deleteFile(fileId: string, userId: string): Promise<void> {
+  async deleteFile(fileId: string): Promise<void> {
     const file = await dbService.getFile(fileId);
     if (!file) return;
 

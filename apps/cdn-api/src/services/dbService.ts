@@ -54,7 +54,7 @@ export class DBService implements IDBService {
     );
   }
 
-  async getFileById(id: string): Promise<any> {
+  async getFileById(id: string): Promise<{ id: string }> {
     const result = await pool.query(`SELECT * FROM files WHERE id=$1;`, [id]);
     return result.rows[0];
   }
@@ -65,7 +65,7 @@ export class DBService implements IDBService {
     pageSize: number,
     sortBy: string,
     sortOrder: string
-  ): Promise<{ files: any[]; total: number }> {
+  ): Promise<{ files: { id: string }[]; total: number }> {
     const offset = (page - 1) * pageSize;
     const limit = pageSize;
     const order = sortOrder === "desc" ? "DESC" : "ASC";

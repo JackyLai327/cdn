@@ -55,19 +55,19 @@ export class SqsConsumer {
             );
 
             logger.info(`Worker: processed and deleted job ${body.fileId}`);
-          } catch (error: any) {
+          } catch (error) {
             logger.error(`Worker: failed to process job ${body.fileId}: {
-              message: ${error.message},
-              stack: ${error.stack}
+              message: ${error.message || ""},
+              stack: ${error.stack || ""}
             }`);
           }
         }
-      } catch (error: any) {
+      } catch (error) {
         logger.error(`Worker: polling error: {
-          name: ${error.name}
-          message: ${error.message},
-          stack: ${error.stack},
-          errors: ${(error.errors ?? []).map((e: any) => e.message).join(", ")}
+          name: ${error.name || ""},
+          message: ${error.message || ""},
+          stack: ${error.stack || ""},
+          errors: ${(error.errors ?? []).map((e: Error) => e.message).join(", ")}
         }`);
       }
     }
