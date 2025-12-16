@@ -75,7 +75,7 @@ export interface IDBService {
     pageSize: number,
     sortBy: string,
     sortOrder: string
-  ): Promise<{ files: { id: string }[]; total: number }>;
+  ): Promise<{ files: any[]; total: number }>;
 
   /**
    * Count the number of files for a user

@@ -2,7 +2,6 @@ import { config } from "../../config/index.js";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { type IStorageService } from "./interfaces/storage.js";
 import { GetObjectCommand, HeadObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { logger } from "../../lib/logger.js";
 
 const isLocal = config.CDN_ENV === "local";
 
@@ -53,7 +52,6 @@ export class StorageService implements IStorageService {
       );
       return true;
     } catch (error) {
-      logger.error(`Storage: verifyObjectExists: ${error}`);
       return false;
     }
   }

@@ -1,10 +1,11 @@
-import { logger } from "../../lib/logger.js";
 import { verifyAuthToken, type AuthClaims } from "../auth/jwt.js";
 import { type Request, type Response, type NextFunction } from "express";
 
 declare global {
-  interface Request {
-    auth?: AuthClaims;
+  namespace Express {
+    interface Request {
+      auth?: AuthClaims;
+    }
   }
 }
 
@@ -24,7 +25,6 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
     req.auth = authClaims;
     return next();
   } catch (error) {
-    logger.error(`Auth: invalid token: ${error}`);
     return res.status(401).json({ error: "Invalid token" });
   }
 };
