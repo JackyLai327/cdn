@@ -4,8 +4,8 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - 'infra/**'
-      - '.github/workflows/infra-check.yaml'
+      - "infra/**"
+      - ".github/workflows/infra-check.yaml"
 
 permissions:
   id-token: write # Required for AWS OIDC authentication
@@ -49,3 +49,10 @@ jobs:
 
       - name: Terraform Plan
         run: terraform plan -no-color
+
+      - name: Run Checkov
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: infra/envs/${{ matrix.env }}
+          framework: terraform
+          soft_fail: true # Set to false to block builds on errors

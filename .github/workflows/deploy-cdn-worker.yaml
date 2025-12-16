@@ -1,0 +1,124 @@
+name: Deploy CDN Worker
+
+on:
+  release:
+    types: [published]
+  # push:
+  #   branches: ['main']
+  #   paths:
+  #     - 'apps/cdn-worker/**'
+  #     - '/.github/workflows/deploy-cdn-worker.yaml'
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  AWS_REGION: ap-southeast-2
+  ECR_REPOSITORY: cdn-worker
+  IAM_ROLE_ARN: arn:aws:iam::791954933241:role/GitHubActionsRole
+
+jobs:
+  deploy-staging:
+    runs-on: ubuntu-latest
+    environment: staging
+    defaults:
+      run:
+        working-directory: ./apps/cdn-worker
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.IAM_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, Tag and Push Docker Image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.ref_name }}-${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+
+      - name: Run Trivy Security Scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+          format: "table"
+          exit-code: "1" # Fail the build if any vulnerabilities are found
+          ignore-unfixed: "true" # Ignore vulnerabilities that are not fixed
+          vuln-type: "os,library"
+          severity: "CRITICAL, HIGH" # Only show critical vulnerabilities
+
+      - name: Push Docker Image
+        run: |
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+  deploy-production:
+    needs: deploy-staging
+    runs-on: ubuntu-latest
+    environment: production
+    defaults:
+      run:
+        working-directory: ./apps/cdn-worker
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.IAM_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Update KubeConfig
+        run: aws eks update-kubeconfig --name dev-eks --region ${{ env.AWS_REGION }}
+
+      - name: Build Docker Image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.ref_name }}-${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+
+      - name: Run Trivy Security Scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+          format: "table"
+          exit-code: "1" # Fail the build if any vulnerabilities are found
+          ignore-unfixed: "true" # Ignore vulnerabilities that are not fixed
+          vuln-type: "os,library"
+          severity: "CRITICAL, HIGH" # Only show critical vulnerabilities
+
+      - name: Push Docker Image
+        run: |
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+      - name: Deploy to Kubernetes
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.ref_name }}-${{ github.sha }}
+        run: |
+          sed -i "s|image: .*|image: $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG|g" ../../k8s/worker-deployment.yaml
+
+          kubectl apply -f ../../k8s/worker-deployment.yaml
+          kubectl rollout status deployment/cdn-worker
