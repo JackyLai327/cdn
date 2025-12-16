@@ -75,7 +75,29 @@ export interface IDBService {
     pageSize: number,
     sortBy: string,
     sortOrder: string
-  ): Promise<{ files: any[]; total: number }>;
+  ): Promise<{ files: {
+    id: string,
+    user_id: string,
+    original_filename: string,
+    mime_type: string,
+    size_bytes: number,
+    status: string,
+    created_at: string,
+    updated_at: string,
+    thumbnail: {
+      width: number,
+      height: number,
+      bytes: number,
+      cdnUrl: string,
+    } | null,
+    variants: {
+      width: number,
+      height: number,
+      bytes: number,
+      key: string,
+    }[],
+    storage_key: string,
+  }[]; total: number }>;
 
   /**
    * Count the number of files for a user
