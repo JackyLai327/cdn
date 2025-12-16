@@ -1,6 +1,6 @@
 # * Subnet group that the database will be created in
 resource "aws_db_subnet_group" "this" {
-  name       = "${var.db_name}-subnet-group"
+  name       = "${replace(var.db_name, "_", "-")}-subnet-group"
   subnet_ids = var.subnet_ids
 
   tags = var.tags
@@ -54,13 +54,13 @@ resource "aws_secretsmanager_secret_version" "db" {
 
 # * RDS Instance
 resource "aws_db_instance" "this" {
-  identifier        = var.db_name
+  identifier        = replace(var.db_name, "_", "-")
   allocated_storage = 20
   engine            = var.db_engine
   engine_version    = var.engine_version
   instance_class    = var.instance_class
 
-  db_name  = var.db_name
+  db_name  = replace(var.db_name, "-", "_")
   username = var.db_username
   password = random_password.password.result
 
