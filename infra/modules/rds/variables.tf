@@ -35,9 +35,9 @@ variable "vpc_id" {
 }
 
 variable "tags" {
-  type = map(string)
+  type        = map(string)
   description = "Tags for the database"
-  default = {}
+  default     = {}
 }
 
 variable "eks_node_sg_id" {
