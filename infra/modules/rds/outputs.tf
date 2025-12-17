@@ -17,3 +17,7 @@ output "db_user" {
 output "db_password" {
   value = aws_db_instance.this.password
 }
+
+output "db_host" {
+  value = aws_db_instance.this.endpoint
+}

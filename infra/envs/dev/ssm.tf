@@ -2,7 +2,7 @@ resource "aws_ssm_parameter" "db_host" {
   name = "/cdn/dev/DB_HOST"
   type = "String"
 
-  value = module.rds.db_endpoint
+  value = module.rds.db_host
 }
 
 resource "aws_ssm_parameter" "s3_bucket_raw" {
