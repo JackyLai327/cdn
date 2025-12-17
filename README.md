@@ -1,87 +1,133 @@
-# CDN Service
+# 🚀 Easy CDN Service
 
-A scalable Content Delivery Network (CDN) system designed for high-performance file management and image processing. This project consists of a robust API for file operations and a background worker for asynchronous image optimization, backed by AWS infrastructure.
+![Build Status](https://img.shields.io/github/actions/workflow/status/JackyLai327/cdn/ci-cdn-api.yaml?branch=main&label=API%20Build)
+![Worker Status](https://img.shields.io/github/actions/workflow/status/JackyLai327/cdn/ci-cdn-worker.yaml?branch=main&label=Worker%20Build)
+![Infrastructure](https://img.shields.io/github/actions/workflow/status/JackyLai327/cdn/infra-check.yaml?branch=main&label=Infrastructure)
+![License](https://img.shields.io/github/license/JackyLai327/cdn)
+![Version](https://img.shields.io/github/v/release/JackyLai327/cdn)
+
+A high-performance, scalable **Content Delivery Network (CDN)** system designed for secure file management and automated image optimization. Built with a microservices architecture on AWS, it leverages **Kubernetes (EKS)** for orchestration and **Terraform** for Infrastructure as Code (IaC).
+
+---
 
 ## 🏗 Architecture
 
-The system is built with a microservices approach:
+The system follows a modern microservices pattern, ensuring scalability and separation of concerns:
 
-- **[cdn-api](apps/cdn-api/)**: An Express.js REST API that handles:
-  - Secure file uploads (presigned URLs)
-  - Authentication & Authorization
-  - File metadata management
-- **[cdn-worker](apps/cdn-worker/)**: A background worker service that:
-  - Consumes tasks from an SQS queue
-  - Processes and optimizes images using `sharp`
-  - Updates file status in the database
-- **Infrastructure**: Managed via Terraform, utilizing AWS services:
-  - **S3**: Object storage for raw and processed files
-  - **SQS**: Message queue for decoupling uploads from processing
-  - **CloudFront**: Content delivery network for low-latency access
-  - **RDS (PostgreSQL)**: Relational database for metadata
+- **🔌 CDN API (`apps/cdn-api`)**:
+  - **Role**: The gateway to the system.
+  - **Tech**: Node.js, Express, TypeScript.
+  - **Features**: Secure file uploads via S3 Presigned URLs, JWT-based authentication, and metadata management.
+  
+- **⚙️ CDN Worker (`apps/cdn-worker`)**:
+  - **Role**: Asynchronous background processor.
+  - **Tech**: Node.js, Sharp, AWS SQS.
+  - **Features**: Consumes upload events, performs image optimization (resizing, format conversion), and updates file status.
+
+- **☁️ Infrastructure**:
+  - **AWS EKS**: Kubernetes cluster for container orchestration.
+  - **AWS S3**: Dual-bucket strategy (Raw vs. Processed) for secure storage.
+  - **AWS SQS**: Decoupled message queue for reliable event processing.
+  - **AWS RDS**: Managed PostgreSQL for persistent metadata storage.
+  - **AWS CloudFront**: Global content delivery with low latency.
+
+---
 
 ## 📂 Project Structure
 
-```
+This repository is organized as a monorepo:
+
+```bash
+.
 ├── apps/
-│   ├── cdn-api/      # API Service (Express, TypeScript)
-│   ├── cdn-worker/   # Background Worker (Node.js, Sharp)
-│   └── cdn-web/      # Web Interface
-├── infra/            # Infrastructure as Code (Terraform)
-└── local/            # Local development setup (Docker Compose, LocalStack)
+│   ├── cdn-api/        # REST API Service
+│   ├── cdn-worker/     # Background Image Processor
+│   └── cdn-web/        # Web Dashboard (Frontend)
+├── infra/              # Terraform Infrastructure as Code
+│   ├── envs/           # Environment-specific configs (dev, prod)
+│   └── modules/        # Reusable Terraform modules
+├── k8s/                # Kubernetes Manifests (Helm/Plain YAML)
+├── docs/               # Documentation & Runbooks
+└── local/              # Local Development Environment (Docker Compose)
 ```
+
+---
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 
-- [Docker](https://www.docker.com/) & Docker Compose
-- [Node.js](https://nodejs.org/) (v18+ recommended)
-- [pnpm](https://pnpm.io/) or npm
+- **Docker** & **Docker Compose**
+- **Node.js** v20+
+- **AWS CLI** (configured)
+- **Terraform** v1.5+
 
-### Local Development
+### 💻 Local Development
 
-1.  **Start Local Infrastructure**
-    Navigate to the `local` directory and start the services (Postgres, LocalStack for S3/SQS).
+Run the entire stack locally using Docker Compose and LocalStack to emulate AWS services.
+
+1.  **Initialize Local Environment**
     ```bash
     cd local
     docker-compose up -d
+    ./localstack-init.sh # Seeds S3 buckets and SQS queues
     ```
 
 2.  **Install Dependencies**
-    Install dependencies for all applications.
     ```bash
-    # In apps/cdn-api
-    cd apps/cdn-api
-    npm install
+    # Install API dependencies
+    cd apps/cdn-api && npm ci
 
-    # In apps/cdn-worker
-    cd ../cdn-worker
-    npm install
+    # Install Worker dependencies
+    cd ../cdn-worker && npm ci
     ```
 
-3.  **Run Services**
-    You can run the services in development mode with hot-reloading.
+3.  **Start Services**
     ```bash
-    # Terminal 1: API
-    cd apps/cdn-api
-    npm run dev
+    # Terminal 1: Start API
+    cd apps/cdn-api && npm run dev
 
-    # Terminal 2: Worker
-    cd apps/cdn-worker
-    npm run dev
+    # Terminal 2: Start Worker
+    cd apps/cdn-worker && npm run dev
     ```
+
+---
 
 ## 🛠 Tech Stack
 
-- **Language**: TypeScript
-- **Runtime**: Node.js
-- **Framework**: Express.js
-- **Database**: PostgreSQL
-- **Queue**: AWS SQS (LocalStack for local dev)
-- **Storage**: AWS S3 (LocalStack for local dev)
-- **DevOps**: Docker, Terraform
+| Category           | Technology           |
+| ------------------ | -------------------- |
+| **Runtime**        | Node.js (TypeScript) |
+| **Framework**      | Express.js           |
+| **Database**       | PostgreSQL (AWS RDS) |
+| **Queue**          | AWS SQS              |
+| **Storage**        | AWS S3               |
+| **Infrastructure** | Terraform            |
+| **Orchestration**  | Kubernetes (EKS)     |
+| **CI/CD**          | GitHub Actions       |
+
+---
+
+## 📖 Documentation
+
+Detailed documentation can be found in the `docs/` directory:
+
+- [**Setup Flow**](docs/setup-flow.md): Step-by-step guide to provisioning the infrastructure.
+- [**Configuration**](docs/config.md): Environment variables and configuration reference.
+- [**Operational Notes**](docs/notes.md): Monitoring and observability guide.
+
+---
+
+## 🤝 Contribution
+
+1.  Fork the repository.
+2.  Create a feature branch (`git checkout -b feature/amazing-feature`).
+3.  Commit your changes (`git commit -m 'feat: add amazing feature'`).
+4.  Push to the branch (`git push origin feature/amazing-feature`).
+5.  Open a Pull Request.
+
+---
 
 ## 📄 License
 
-[ISC](LICENSE)
+This project is licensed under the [ISC License](LICENSE).
