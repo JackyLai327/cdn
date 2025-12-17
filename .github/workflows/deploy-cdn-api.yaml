@@ -3,11 +3,11 @@ name: Deploy CDN API
 on:
   release:
     types: [published]
-  # push:
-  #   branches: ['main']
-  #   paths:
-  #     - 'apps/cdn-api/**'
-  #     - '/.github/workflows/deploy-cdn-api.yaml'
+  push:
+    branches: ['main']
+    paths:
+      - 'apps/cdn-api/**'
+      - '/.github/workflows/deploy-cdn-api.yaml'
 
 permissions:
   id-token: write

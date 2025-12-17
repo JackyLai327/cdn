@@ -3,11 +3,11 @@ name: Deploy CDN Worker
 on:
   release:
     types: [published]
-  # push:
-  #   branches: ['main']
-  #   paths:
-  #     - 'apps/cdn-worker/**'
-  #     - '/.github/workflows/deploy-cdn-worker.yaml'
+  push:
+    branches: ['main']
+    paths:
+      - 'apps/cdn-worker/**'
+      - '/.github/workflows/deploy-cdn-worker.yaml'
 
 permissions:
   id-token: write
