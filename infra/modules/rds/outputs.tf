@@ -9,3 +9,11 @@ output "port" {
 output "secret_arn" {
   value = aws_secretsmanager_secret.db.arn
 }
+
+output "db_user" {
+  value = aws_db_instance.this.username
+}
+
+output "db_password" {
+  value = aws_db_instance.this.password
+}

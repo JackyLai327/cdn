@@ -113,12 +113,38 @@ jobs:
           docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
+      - name: Fetch Config from SSM
+        run: |
+          sudo apt-get install -y jq
+          DB_HOST=$(aws ssm get-parameter --name "cdn/dev/DB_HOST" --query "Parameter.Value" --output text)
+          DB_USER=$(aws ssm get-parameter --name "cdn/dev/DB_USER" --query "Parameter.Value" --output text)
+          DB_PASSWORD=$(aws ssm get-parameter --name "cdn/dev/DB_PASSWORD" --query "Parameter.Value" --output text)
+          S3_BUCKET_RAW=$(aws ssm get-parameter --name "cdn/dev/S3_BUCKET_RAW" --query "Parameter.Value" --output text)
+          S3_BUCKET_PROCESSED=$(aws ssm get-parameter --name "cdn/dev/S3_BUCKET_PROCESSED" --query "Parameter.Value" --output text)
+          QUEUE_URL=$(aws ssm get-parameter --name "cdn/dev/QUEUE_URL" --query "Parameter.Value" --output text)
+          JWT_SECRET=$(aws ssm get-parameter --name "cdn/dev/JWT_SECRET" --query "Parameter.Value" --output text)
+          CLOUDFRONT_DISTRIBUTION_ID=$(aws ssm get-parameter --name "cdn/dev/CLOUDFRONT_DISTRIBUTION_ID" --query "Parameter.Value" --output text)
+
+          echo "DB_HOST=$DB_HOST" >> $GITHUB_ENV
+          echo "DB_USER=$DB_USER" >> $GITHUB_ENV
+          echo "DB_PASSWORD=$DB_PASSWORD" >> $GITHUB_ENV
+          echo "S3_BUCKET_RAW=$S3_BUCKET_RAW" >> $GITHUB_ENV
+          echo "S3_BUCKET_PROCESSED=$S3_BUCKET_PROCESSED" >> $GITHUB_ENV
+          echo "QUEUE_URL=$QUEUE_URL" >> $GITHUB_ENV
+          echo "JWT_SECRET=$JWT_SECRET" >> $GITHUB_ENV
+          echo "CLOUDFRONT_DISTRIBUTION_ID=$CLOUDFRONT_DISTRIBUTION_ID" >> $GITHUB_ENV
+
       - name: Deploy to Kubernetes
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.ref_name }}-${{ github.sha }}
         run: |
-          sed -i "s|image: .*|image: $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG|g" ../../k8s/worker-deployment.yaml
-
+          envsubst < ../../k8s/configmap.yaml > ../../k8s/configmap-generated.yaml
+          envsubst < ../../k8s/secrets.yaml > ../../k8s/secrets-generated.yaml
+          kubectl apply -f ../../k8s/configmap-generated.yaml
+          kubectl apply -f ../../k8s/secrets-generated.yaml
           kubectl apply -f ../../k8s/worker-deployment.yaml
+          kubectl rollout restart deployment/cdn-worker
           kubectl rollout status deployment/cdn-worker
+          rm ../../k8s/configmap-generated.yaml
+          rm ../../k8s/secrets-generated.yaml
