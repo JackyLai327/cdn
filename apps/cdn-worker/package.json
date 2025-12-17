@@ -8,7 +8,7 @@
     "build": "tsc",
     "start": "node dist/src/main.js",
     "dev": "tsx watch src/main.ts",
-    "lint": "eslint . --ext .ts --cache"
+    "lint": "eslint . --cache"
   },
   "keywords": [],
   "author": "",
@@ -26,9 +26,15 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.2",
     "@types/node": "^24.10.1",
     "@types/pg": "^8.15.6",
+    "@typescript-eslint/eslint-plugin": "^8.50.0",
+    "@typescript-eslint/parser": "^8.50.0",
+    "eslint": "^9.39.2",
+    "globals": "^16.5.0",
     "tsx": "^4.19.2",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.50.0"
   }
 }

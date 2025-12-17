@@ -5,7 +5,7 @@ resource "aws_route53_record" "cdn_alias" {
 
   alias {
     name                   = var.cdn_domain_name
-    zone_id                = "Z2FDTNDATAQYW2"  # ! This is Cloudflare's zone ID
+    zone_id                = "Z2FDTNDATAQYW2" # ! This is Cloudflare's zone ID
     evaluate_target_health = false
   }
 }

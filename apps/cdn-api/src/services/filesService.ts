@@ -1,7 +1,6 @@
 import { v4 as uuid } from "uuid";
 import { JobType } from "../types/job.js";
 import { DBService } from "./dbService.js";
-import { logger } from "../../lib/logger.js";
 import { config } from "../../config/index.js";
 import { QueueService } from "./queueService.js";
 import { StorageService } from "./storageService.js";

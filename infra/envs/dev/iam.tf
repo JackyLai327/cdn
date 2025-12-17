@@ -13,9 +13,9 @@ data "aws_iam_policy_document" "cdn_app_trust" {
     }
 
     condition {
-      test = "StringEquals"
+      test     = "StringEquals"
       variable = "${replace(module.eks.cluster_oidc_issuer_url, "https://", "")}:sub"
-      values = ["system:serviceaccount:cdn:cdn-service-account"]
+      values   = ["system:serviceaccount:cdn:cdn-service-account"]
     }
   }
 }
@@ -37,12 +37,12 @@ data "aws_iam_policy_document" "cdn_app_permissions" {
 }
 
 resource "aws_iam_role" "cdn_app_role" {
-  name = "cdn-app-role"
+  name               = "cdn-app-role"
   assume_role_policy = data.aws_iam_policy_document.cdn_app_trust.json
 }
 
 resource "aws_iam_role_policy" "cdn_app_policy" {
-  name = "cdn-app-permissions"
-  role = aws_iam_role.cdn_app_role.id
+  name   = "cdn-app-permissions"
+  role   = aws_iam_role.cdn_app_role.id
   policy = data.aws_iam_policy_document.cdn_app_permissions.json
 }

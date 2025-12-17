@@ -11,6 +11,7 @@ import {
   deleteFileParamsSchema,
   deleteFilesForUserParamsSchema,
 } from "./schemas/files.schema.js";
+import { AuthRequest } from "../types/authRequest.js";
 
 export const initiateUpload =
   (filesService: FilesService) =>
@@ -25,7 +26,7 @@ export const initiateUpload =
 
         const params = {
           ...parsed.data,
-          userId: req.auth?.sub || "",
+          userId: (req as AuthRequest).auth?.sub || "",
         }
 
         const result = await filesService.initiateUpload(params);
@@ -55,7 +56,7 @@ export const completeUpload =
 
         const params = {
           ...parsed.data,
-          userId: req.auth?.sub || "",
+          userId: (req as AuthRequest).auth?.sub || "",
         }
 
         const result = await filesService.completeUpload(params);
@@ -81,7 +82,7 @@ export const getFileById =
           throw new BadRequestError("Invalid file ID");
         }
 
-        const userId = req.auth?.sub || "";
+        const userId = (req as AuthRequest).auth?.sub || "";
         const result = await filesService.getFile(parsed.data.id, userId);
         if (!result) {
           throw new NotFoundError("File not found");
@@ -129,7 +130,7 @@ export const listFilesHandler =
         }
 
         const { page, pageSize, sortBy, sortOrder } = parsed.data;
-        const userId = req.auth?.sub || "";
+        const userId = (req as AuthRequest).auth?.sub || "";
 
         const result = await filesService.listFiles({
           userId,
@@ -162,7 +163,7 @@ export const deleteFileHandler =
         }
 
         const { id } = parsed.data;
-        const userId = req.auth?.sub || "";
+        const userId = (req as AuthRequest).auth?.sub || "";
         const file = await filesService.getFile(id, userId);
         if (!file) {
           throw new NotFoundError("File not found");
@@ -203,7 +204,7 @@ export const deleteFilesForUserHandler =
           throw new BadRequestError("Invalid user ID");
         }
 
-        const userId = req.auth?.sub || "";
+        const userId = (req as AuthRequest).auth?.sub || "";
         const result = await filesService.requestDeleteForUser(userId);
 
         const response = ApiResponse.success(result, "Files delete requested.");

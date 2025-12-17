@@ -1,0 +1,105 @@
+name: Deploy CDN API
+
+on:
+  release:
+    types: [published]
+  # push:
+  #   branches: ['main']
+  #   paths:
+  #     - 'apps/cdn-api/**'
+  #     - '/.github/workflows/deploy-cdn-api.yaml'
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  AWS_REGION: ap-southeast-2
+  ECR_REPOSITORY: cdn-api
+  IAM_ROLE_ARN: arn:aws:iam::791954933241:role/GitHubActionsRole
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./apps/cdn-api
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.IAM_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Update KubeConfig
+        run: aws eks update-kubeconfig --name dev-eks --region ${{ env.AWS_REGION }}
+
+      - name: Build Docker Image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.ref_name }}-${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+
+      - name: Run Trivy Security Scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+          format: "table"
+          exit-code: "1" # Fail the build if any vulnerabilities are found
+          ignore-unfixed: "true" # Ignore vulnerabilities that are not fixed
+          vuln-type: "os,library"
+          severity: "CRITICAL, HIGH" # Only show critical vulnerabilities
+
+      - name: Push Docker Image
+        run: |
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+      - name: Fetch Config from SSM
+        run: |
+          sudo apt-get install -y jq
+          DB_HOST=$(aws ssm get-parameter --name "cdn/dev/DB_HOST" --query "Parameter.Value" --output text)
+          DB_USER=$(aws ssm get-parameter --name "cdn/dev/DB_USER" --query "Parameter.Value" --output text)
+          DB_PASSWORD=$(aws ssm get-parameter --name "cdn/dev/DB_PASSWORD" --query "Parameter.Value" --output text)
+          S3_BUCKET_RAW=$(aws ssm get-parameter --name "cdn/dev/S3_BUCKET_RAW" --query "Parameter.Value" --output text)
+          S3_BUCKET_PROCESSED=$(aws ssm get-parameter --name "cdn/dev/S3_BUCKET_PROCESSED" --query "Parameter.Value" --output text)
+          QUEUE_URL=$(aws ssm get-parameter --name "cdn/dev/QUEUE_URL" --query "Parameter.Value" --output text)
+          JWT_SECRET=$(aws ssm get-parameter --name "cdn/dev/JWT_SECRET" --query "Parameter.Value" --output text)
+          CLOUDFRONT_DISTRIBUTION_ID=$(aws ssm get-parameter --name "cdn/dev/CLOUDFRONT_DISTRIBUTION_ID" --query "Parameter.Value" --output text)
+
+          echo "DB_HOST=$DB_HOST" >> $GITHUB_ENV
+          echo "DB_USER=$DB_USER" >> $GITHUB_ENV
+          echo "DB_PASSWORD=$DB_PASSWORD" >> $GITHUB_ENV
+          echo "S3_BUCKET_RAW=$S3_BUCKET_RAW" >> $GITHUB_ENV
+          echo "S3_BUCKET_PROCESSED=$S3_BUCKET_PROCESSED" >> $GITHUB_ENV
+          echo "QUEUE_URL=$QUEUE_URL" >> $GITHUB_ENV
+          echo "JWT_SECRET=$JWT_SECRET" >> $GITHUB_ENV
+          echo "CLOUDFRONT_DISTRIBUTION_ID=$CLOUDFRONT_DISTRIBUTION_ID" >> $GITHUB_ENV
+
+      - name: Deploy to Kubernetes
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.ref_name }}-${{ github.sha }}
+        run: |
+          envsubst < ../../k8s/configmap.yaml > ../../k8s/configmap-generated.yaml
+          envsubst < ../../k8s/secrets.yaml > ../../k8s/secrets-generated.yaml
+          kubectl apply -f ../../k8s/configmap-generated.yaml
+          kubectl apply -f ../../k8s/secrets-generated.yaml
+          kubectl apply -f ../../k8s/api-deployment.yaml
+          kubectl rollout restart deployment/cdn-api
+          kubectl rollout status deployment/cdn-api
+          rm ../../k8s/configmap-generated.yaml
+          rm ../../k8s/secrets-generated.yaml

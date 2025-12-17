@@ -8,7 +8,10 @@ import { IDeleteProcessor } from "./interfaces/deleteProcessor.js";
 
 export class DeleteProcessor implements IDeleteProcessor {
 
+  // TODO Make use of User Id
   async deleteFile(fileId: string, userId: string): Promise<void> {
+    logger.info(`Worker: deleting file ${fileId} for user ${userId}`);
+
     const file = await dbService.getFile(fileId);
     if (!file) return;
 

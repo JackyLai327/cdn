@@ -1,13 +1,7 @@
-import { verifyAuthToken, type AuthClaims } from "../auth/jwt.js";
+import { logger } from "../../lib/logger.js";
+import { verifyAuthToken } from "../auth/jwt.js";
 import { type Request, type Response, type NextFunction } from "express";
-
-declare global {
-  namespace Express {
-    interface Request {
-      auth?: AuthClaims;
-    }
-  }
-}
+import { AuthRequest } from "../types/authRequest.js";
 
 export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;
@@ -22,9 +16,10 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
 
   try {
     const authClaims = verifyAuthToken(token);
-    req.auth = authClaims;
+    (req as AuthRequest).auth = authClaims;
     return next();
   } catch (error) {
+    logger.error(error);
     return res.status(401).json({ error: "Invalid token" });
   }
 };
