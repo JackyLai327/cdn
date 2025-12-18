@@ -114,4 +114,18 @@ export interface IDBService {
    * @returns Promise<{...}>: Resolves with the list of active files
    */
   getActiveFilesByUser(userId: string): Promise<{ id: string }[]>;
+
+  /**
+   * Get a job by ID
+   *
+   * @param jobId
+   * @returns Promise<{...}>: Resolves with the job record
+   */
+  getJob(jobId: string): Promise<{
+    job_id: string;
+    status: string;
+    created_at: string;
+    updated_at: string;
+    locked_at: string;
+  } | null>;
 }

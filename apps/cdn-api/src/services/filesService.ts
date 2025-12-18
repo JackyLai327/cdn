@@ -266,4 +266,12 @@ export class FilesService {
 
     return { count: files.length };
   }
+
+  async getJob(jobId: string) {
+    const job = await this.dbService.getJob(jobId);
+    if (!job) {
+      throw new NotFoundError("Job not found");
+    }
+    return job;
+  }
 }

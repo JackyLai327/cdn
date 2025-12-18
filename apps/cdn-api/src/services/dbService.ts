@@ -65,29 +65,32 @@ export class DBService implements IDBService {
     pageSize: number,
     sortBy: string,
     sortOrder: string
-  ): Promise<{ files: {
-    id: string,
-    user_id: string,
-    original_filename: string,
-    mime_type: string,
-    size_bytes: number,
-    status: string,
-    created_at: string,
-    updated_at: string,
-    thumbnail: {
-      width: number,
-      height: number,
-      bytes: number,
-      cdnUrl: string,
-    } | null,
-    variants: {
-      width: number,
-      height: number,
-      bytes: number,
-      key: string,
-    }[],
-    storage_key: string,
-  }[]; total: number }> {
+  ): Promise<{
+    files: {
+      id: string;
+      user_id: string;
+      original_filename: string;
+      mime_type: string;
+      size_bytes: number;
+      status: string;
+      created_at: string;
+      updated_at: string;
+      thumbnail: {
+        width: number;
+        height: number;
+        bytes: number;
+        cdnUrl: string;
+      } | null;
+      variants: {
+        width: number;
+        height: number;
+        bytes: number;
+        key: string;
+      }[];
+      storage_key: string;
+    }[];
+    total: number;
+  }> {
     const offset = (page - 1) * pageSize;
     const limit = pageSize;
     const order = sortOrder === "desc" ? "DESC" : "ASC";
@@ -105,7 +108,10 @@ export class DBService implements IDBService {
   }
 
   async countFiles(userId: string): Promise<number> {
-    const result = await pool.query(`SELECT COUNT(*) AS count FROM files WHERE user_id=$1;`, [userId]);
+    const result = await pool.query(
+      `SELECT COUNT(*) AS count FROM files WHERE user_id=$1;`,
+      [userId]
+    );
     return result.rows[0].count;
   }
 
@@ -113,8 +119,19 @@ export class DBService implements IDBService {
     const result = await pool.query(
       `SELECT id from files WHERE user_id=$1 AND status <> 'deleted';`,
       [userId]
-    )
-    return result.rows as { id: string }[]
+    );
+    return result.rows as { id: string }[];
+  }
+
+  async getJob(jobId: string): Promise<{
+    job_id: string;
+    status: string;
+    created_at: string;
+    updated_at: string;
+    locked_at: string;
+  } | null> {
+    const result = await pool.query(`SELECT * FROM jobs WHERE job_id=$1;`, [jobId]);
+    return result.rows[0];
   }
 }
 
