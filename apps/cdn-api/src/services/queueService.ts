@@ -1,3 +1,4 @@
+import { JobType } from "../types/job.js";
 import { config } from "../../config/index.js";
 import { type IQueueService } from "./interfaces/queue.js";
 import { SendMessageCommand, SQSClient } from "@aws-sdk/client-sqs";
@@ -5,7 +6,6 @@ import { SendMessageCommand, SQSClient } from "@aws-sdk/client-sqs";
 const isLocal = config.CDN_ENV === "local";
 
 export class QueueService implements IQueueService {
-
   private sqs: SQSClient;
 
   constructor() {
@@ -16,12 +16,19 @@ export class QueueService implements IQueueService {
         credentials: {
           accessKeyId: config.S3_ACCESS_KEY_ID,
           secretAccessKey: config.S3_SECRET_ACCESS_KEY,
-        }
-      })
+        },
+      }),
     });
   }
 
-  async sendJob(payload: object): Promise<void> {
+  async sendJob(payload: {
+    jobId: string;
+    type: JobType;
+    fileId: string;
+    storageKey?: string;
+    userId: string;
+    requestedSizes?: number[];
+  }): Promise<void> {
     const command = new SendMessageCommand({
       QueueUrl: config.QUEUE_URL,
       MessageBody: JSON.stringify(payload),

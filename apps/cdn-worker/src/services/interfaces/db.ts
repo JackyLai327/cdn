@@ -1,6 +1,12 @@
 import { Variant } from "../../types/variant.js";
 import { FileMetadata } from "../../types/fileMetadata.js";
 
+export enum JobClaimStatus {
+  CLAIMED,
+  ALREADY_COMPLETED,
+  LOCKED_BY_OTHER
+}
+
 export interface IDBService {
   /**
    * Update the status of a file
@@ -43,4 +49,23 @@ export interface IDBService {
    * @param ids
    */
   hardDeleteFiles(ids: string[]): Promise<void>;
+
+  /**
+   * Claim a job
+   * @param jobId
+   */
+  claimJob(jobId: string): Promise<JobClaimStatus>;
+
+  /**
+   * Update the status of a job
+   * @param jobId
+   * @param status (processing, completed, failed)
+   */
+  updateJobStatus(jobId: string, status: string): Promise<void>;
+
+  /**
+   * Delete a job
+   * @param jobId
+   */
+  deleteJob(jobId: string): Promise<void>;
 }

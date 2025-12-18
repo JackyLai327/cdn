@@ -1,7 +1,7 @@
 import sharp from "sharp";
-import { config } from "../../config/index.js";
 import { logger } from "../../lib/logger.js";
 import { Variant } from "../types/variant.js";
+import { config } from "../../config/index.js";
 import { ProcessFileJob } from "../types/job.js";
 import { dbService } from "../services/dbService.js";
 import { storageService } from "../services/storageService.js";
@@ -60,5 +60,6 @@ export const processFile = async (job: ProcessFileJob) => {
     logger.info(`Worker: processed job ${job.fileId}`);
   } catch (error) {
     logger.error(`Worker: failed to process job ${job.fileId}`, error);
+    throw error;
   }
 }

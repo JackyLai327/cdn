@@ -1,3 +1,4 @@
+import { uuidv4 } from "zod";
 import { v4 as uuid } from "uuid";
 import { JobType } from "../types/job.js";
 import { DBService } from "./dbService.js";
@@ -21,7 +22,7 @@ export class FilesService {
     private dbService: DBService,
     private queueService: QueueService,
     private storageService: StorageService
-  ) { }
+  ) {}
 
   async initiateUpload(params: {
     userId: string;
@@ -83,6 +84,7 @@ export class FilesService {
 
     // Send to queue
     await this.queueService.sendJob({
+      jobId: `${uuidv4()}`,
       type: JobType.PROCESS_FILE,
       fileId,
       storageKey,
@@ -162,39 +164,37 @@ export class FilesService {
     const { userId, page, pageSize, sortBy, sortOrder } = params;
 
     const [result, totalItems] = await Promise.all([
-      this.dbService.listFiles(
-        userId,
-        page,
-        pageSize,
-        sortBy,
-        sortOrder
-      ),
-      this.dbService.countFiles(userId)
-    ])
+      this.dbService.listFiles(userId, page, pageSize, sortBy, sortOrder),
+      this.dbService.countFiles(userId),
+    ]);
 
     const items = result.files.map((file) => {
       const variants = file.variants || [];
       const storageKey = file.storage_key;
 
-      const thumbnailVariant = variants.length > 0
-        ? variants.reduce((smallest: VariantRecord, v: VariantRecord) =>
-          !smallest || (v.width ?? Infinity) < (smallest.width ?? Infinity)
-            ? v
-            : smallest
-        )
-        : null;
+      const thumbnailVariant =
+        variants.length > 0
+          ? variants.reduce((smallest: VariantRecord, v: VariantRecord) =>
+              !smallest || (v.width ?? Infinity) < (smallest.width ?? Infinity)
+                ? v
+                : smallest
+            )
+          : null;
 
       const status = file.status;
       const bustCache = status === "deleted";
 
-      const thumbnail = thumbnailVariant && storageKey
-        ? {
-          width: thumbnailVariant.width,
-          height: thumbnailVariant.height,
-          bytes: thumbnailVariant.bytes,
-          cdnUrl: `${config.CDN_BASE_URL}/${config.S3_BUCKET_PROCESSED}/${thumbnailVariant.key}${bustCache ? `?bust=${Date.now()}` : ""}`,
-        }
-        : null;
+      const thumbnail =
+        thumbnailVariant && storageKey
+          ? {
+              width: thumbnailVariant.width,
+              height: thumbnailVariant.height,
+              bytes: thumbnailVariant.bytes,
+              cdnUrl: `${config.CDN_BASE_URL}/${config.S3_BUCKET_PROCESSED}/${
+                thumbnailVariant.key
+              }${bustCache ? `?bust=${Date.now()}` : ""}`,
+            }
+          : null;
 
       return {
         id: file.id,
@@ -218,7 +218,7 @@ export class FilesService {
         pageSize,
         totalPages,
         totalItems,
-      }
+      },
     };
   }
 
@@ -233,11 +233,12 @@ export class FilesService {
       throw new NotFoundError("File not found");
     }
 
-    if (file.status === 'deleted') return;
+    if (file.status === "deleted") return;
 
-    await this.dbService.updateStatus(fileId, 'pending_delete');
+    await this.dbService.updateStatus(fileId, "pending_delete");
 
     await this.queueService.sendJob({
+      jobId: `${uuidv4()}`,
       type: JobType.DELETE_FILE,
       fileId,
       userId: file.user_id,
