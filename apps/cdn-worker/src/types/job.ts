@@ -4,6 +4,7 @@ export enum JobType {
 }
 
 export type ProcessFileJob = {
+  jobId: string;
   type: JobType.PROCESS_FILE;
   fileId: string;
   storageKey: string;
@@ -12,8 +13,8 @@ export type ProcessFileJob = {
 };
 
 export type DeleteFileJob = {
+  jobId: string;
   type: JobType.DELETE_FILE;
   fileId: string;
   userId: string;
 };
-

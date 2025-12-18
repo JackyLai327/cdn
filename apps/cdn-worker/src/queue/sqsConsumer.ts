@@ -43,6 +43,7 @@ export class SqsConsumer {
 
         for (const message of response.Messages) {
           const body = JSON.parse(message.Body!) as ProcessFileJob | DeleteFileJob;
+
           try {
             await this.handleJob(body);
 
