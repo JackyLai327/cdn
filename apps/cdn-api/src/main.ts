@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 import compression from "compression";
 import { logger } from "../lib/logger.js";
 import { config } from "../config/index.js";
+import jobsRoutes from "./routes/jobs.routes.js";
 import filesRoutes from "./routes/files.routes.js";
 import devAuthRoutes from "./routes/auth.routes.js";
 import healthRoutes from "./routes/health.routes.js";
@@ -52,6 +53,7 @@ app.use(authMiddleware);
 
 // Routes (auth required)
 app.use("/api/files", filesRoutes);
+app.use("/api/jobs", jobsRoutes);
 
 // Error handlers
 app.use(notFoundHandler);
