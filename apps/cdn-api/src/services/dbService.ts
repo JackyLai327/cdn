@@ -1,5 +1,6 @@
 import { Pool } from "pg";
 import { config } from "../../config/index.js";
+import { dbQueryDuration } from "./metrics.js";
 import { type IDBService } from "./interfaces/db.js";
 const pool = new Pool({
   host: config.DB_HOST,
@@ -23,14 +24,25 @@ export class DBService implements IDBService {
         (id, user_id, original_filename, mime_type, size_bytes, storage_key, status)
         VALUES ($1, $2, $3, $4, $5, $6, 'pending_upload');
     `;
-    await pool.query(query, [
-      data.id,
-      data.userId,
-      data.originalFilename,
-      data.mimeType,
-      data.sizeBytes,
-      data.storageKey,
-    ]);
+    const endTimer = dbQueryDuration.startTimer({
+      operation: "insert",
+      table: "files",
+    })
+    try {
+      await pool.query(query, [
+        data.id,
+        data.userId,
+        data.originalFilename,
+        data.mimeType,
+        data.sizeBytes,
+        data.storageKey,
+      ]);
+
+      endTimer();
+    } catch (error) {
+      endTimer();
+      throw error
+    }
   }
 
   async markUploaded(id: string): Promise<void> {
