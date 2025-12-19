@@ -11,6 +11,7 @@ import {
   deleteFileParamsSchema,
   deleteFilesForUserParamsSchema,
 } from "./schemas/files.schema.js";
+import { uploadSize } from "../services/metrics.js";
 import { AuthRequest } from "../types/authRequest.js";
 
 export const initiateUpload =
@@ -29,7 +30,11 @@ export const initiateUpload =
           userId: (req as AuthRequest).auth?.sub || "",
         }
 
-        const result = await filesService.initiateUpload(params);
+        uploadSize.observe({
+          mime_type: params.mimeType,
+        }, params.sizeBytes)
+
+const result = await filesService.initiateUpload(params);
         const response = ApiResponse.success(
           result,
           "File is ready to be uploaded"

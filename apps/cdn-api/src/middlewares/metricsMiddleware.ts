@@ -1,4 +1,4 @@
-import { httpDuration } from "../services/metrics.js";
+import { httpDuration, httpRequestsTotal } from "../services/metrics.js";
 import { type NextFunction, type Request, type Response } from "express";
 
 export const metricsMiddleware = (req: Request, res: Response, next: NextFunction) => {
@@ -8,11 +8,17 @@ export const metricsMiddleware = (req: Request, res: Response, next: NextFunctio
     const duration = process.hrtime(start)
     const seconds = duration[0] + duration[1] / 1e9
 
-    httpDuration.observe({
+    const labels = {
       method: req.method,
       route: req.route?.path || req.path,
       status_code: res.statusCode.toString(),
-    }, seconds)
+    }
+
+    // * Record Duration
+    httpDuration.observe(labels, seconds)
+
+    // * Record Request Count
+    httpRequestsTotal.inc(labels)
   })
 
   next()

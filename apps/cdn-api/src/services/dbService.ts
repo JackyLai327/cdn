@@ -1,7 +1,7 @@
 import { Pool } from "pg";
 import { config } from "../../config/index.js";
-import { dbQueryDuration } from "./metrics.js";
 import { type IDBService } from "./interfaces/db.js";
+import { measureDBQueryDuration } from "./metrics.js";
 const pool = new Pool({
   host: config.DB_HOST,
   port: Number(config.DB_HOST),
@@ -24,50 +24,60 @@ export class DBService implements IDBService {
         (id, user_id, original_filename, mime_type, size_bytes, storage_key, status)
         VALUES ($1, $2, $3, $4, $5, $6, 'pending_upload');
     `;
-    const endTimer = dbQueryDuration.startTimer({
-      operation: "insert",
-      table: "files",
-    })
-    try {
-      await pool.query(query, [
-        data.id,
-        data.userId,
-        data.originalFilename,
-        data.mimeType,
-        data.sizeBytes,
-        data.storageKey,
-      ]);
 
-      endTimer();
-    } catch (error) {
-      endTimer();
-      throw error
-    }
+    await measureDBQueryDuration(
+      "insert",
+      "files",
+      () => pool.query(query, [
+          data.id,
+          data.userId,
+          data.originalFilename,
+          data.mimeType,
+          data.sizeBytes,
+          data.storageKey,
+        ])
+    );
   }
 
   async markUploaded(id: string): Promise<void> {
-    await pool.query(
-      `UPDATE files SET status='uploaded', updated_at=NOW() WHERE id=$1;`,
-      [id]
+    await measureDBQueryDuration(
+      "update",
+      "files",
+      () => pool.query(
+        `UPDATE files SET status='uploaded', updated_at=NOW() WHERE id=$1;`,
+        [id]
+      )
     );
   }
 
   async updateStatus(id: string, status: string): Promise<void> {
-    await pool.query(
-      `UPDATE files SET status=$2, updated_at=NOW() WHERE id=$1;`,
-      [id, status]
+    await measureDBQueryDuration(
+      "update",
+      "files",
+      () => pool.query(
+        `UPDATE files SET status=$2, updated_at=NOW() WHERE id=$1;`,
+        [id, status]
+      )
     );
   }
 
   async addVariants(id: string, variants: string[]): Promise<void> {
-    await pool.query(
-      `UPDATE files SET variants=$2, updated_at=NOW() WHERE id=$1;`,
-      [id, JSON.stringify(variants)]
+    await measureDBQueryDuration(
+      "update",
+      "files",
+      () => pool.query(
+        `UPDATE files SET variants=$2, updated_at=NOW() WHERE id=$1;`,
+        [id, JSON.stringify(variants)]
+      )
     );
   }
 
   async getFileById(id: string) {
-    const result = await pool.query(`SELECT * FROM files WHERE id=$1;`, [id]);
+    const result = await measureDBQueryDuration(
+      "select",
+      "files",
+      () => pool.query(`SELECT * FROM files WHERE id=$1;`, [id])
+    );
     return result.rows[0];
   }
 
@@ -108,9 +118,13 @@ export class DBService implements IDBService {
     const order = sortOrder === "desc" ? "DESC" : "ASC";
     const sort = sortBy === "createdAt" ? "created_at" : "updated_at";
 
-    const result = await pool.query(
-      `SELECT * FROM files WHERE user_id=$1 ORDER BY ${sort} ${order} LIMIT $2 OFFSET $3;`,
-      [userId, limit, offset]
+    const result = await measureDBQueryDuration(
+      "select",
+      "files",
+      () => pool.query(
+        `SELECT * FROM files WHERE user_id=$1 ORDER BY ${sort} ${order} LIMIT $2 OFFSET $3;`,
+        [userId, limit, offset]
+      )
     );
 
     return {
@@ -120,17 +134,25 @@ export class DBService implements IDBService {
   }
 
   async countFiles(userId: string): Promise<number> {
-    const result = await pool.query(
-      `SELECT COUNT(*) AS count FROM files WHERE user_id=$1;`,
-      [userId]
+    const result = await measureDBQueryDuration(
+      "select",
+      "files",
+      () => pool.query(
+        `SELECT COUNT(*) AS count FROM files WHERE user_id=$1;`,
+        [userId]
+      )
     );
     return result.rows[0].count;
   }
 
   async getActiveFilesByUser(userId: string): Promise<{ id: string }[]> {
-    const result = await pool.query(
-      `SELECT id from files WHERE user_id=$1 AND status <> 'deleted';`,
-      [userId]
+    const result = await measureDBQueryDuration(
+      "select",
+      "files",
+      () => pool.query(
+        `SELECT id from files WHERE user_id=$1 AND status <> 'deleted';`,
+        [userId]
+      )
     );
     return result.rows as { id: string }[];
   }
@@ -142,7 +164,11 @@ export class DBService implements IDBService {
     updated_at: string;
     locked_at: string;
   } | null> {
-    const result = await pool.query(`SELECT * FROM jobs WHERE job_id=$1;`, [jobId]);
+    const result = await measureDBQueryDuration(
+      "select",
+      "jobs",
+      () => pool.query(`SELECT * FROM jobs WHERE job_id=$1;`, [jobId])
+    );
     return result.rows[0];
   }
 }
