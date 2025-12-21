@@ -84,4 +84,25 @@ export const measureDBQueryDuration = async <T>(
   }
 }
 
+export const measureExternalDuration = async <T>(
+  service: string,
+  operation: string,
+  fn: () => Promise<T>
+): Promise<T> => {
+  const endTimer = externalDuration.startTimer({ service, operation });
+
+  try {
+    const result = await fn();
+    endTimer();
+    return result;
+  } catch (error: unknown) {
+    endTimer();
+    const code = (error as DBError).code || (error as DBError).message || "unknown";
+    externalErrorTotal.inc({ service, operation, error_code: String(code) });
+    throw error;
+  }
+}
+
+
+
 export { register };

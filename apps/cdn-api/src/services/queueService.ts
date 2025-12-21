@@ -1,6 +1,7 @@
 import { JobType } from "../types/job.js";
 import { config } from "../../config/index.js";
 import { type IQueueService } from "./interfaces/queue.js";
+import { measureExternalDuration } from "./metrics.js";
 import { SendMessageCommand, SQSClient } from "@aws-sdk/client-sqs";
 
 const isLocal = config.CDN_ENV === "local";
@@ -34,7 +35,11 @@ export class QueueService implements IQueueService {
       MessageBody: JSON.stringify(payload),
     });
 
-    await this.sqs.send(command);
+    await measureExternalDuration(
+      "sqs",
+      "sendMessage",
+      async () => this.sqs.send(command)
+    );
   }
 }
 
