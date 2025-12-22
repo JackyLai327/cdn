@@ -1,5 +1,6 @@
 import sharp from "sharp";
 import { logger } from "../../lib/logger.js";
+import { imageProcessingErrorsTotal } from "./metrics.js";
 import { IImageProcessor } from "./interfaces/imageProcessor.js";
 
 export class ImageProcessor implements IImageProcessor {
@@ -57,6 +58,9 @@ export class ImageProcessor implements IImageProcessor {
         .toBuffer();
     } catch (error) {
       logger.error(`Worker: failed to resize image`, error);
+      imageProcessingErrorsTotal.inc({
+        error_type: error instanceof Error ? error.name : "unknown",
+      });
       throw error;
     }
   }

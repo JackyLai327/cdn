@@ -1,5 +1,6 @@
 import { logger } from "../../lib/logger.js";
 import { config } from "../../config/index.js";
+import { jobQueueLatency } from "../services/metrics.js";
 import { ProcessFileJob, DeleteFileJob } from "../types/job.js";
 import { DeleteMessageCommand, ReceiveMessageCommand, SQSClient } from "@aws-sdk/client-sqs";
 
@@ -33,6 +34,7 @@ export class SqsConsumer {
           MaxNumberOfMessages: 1,
           WaitTimeSeconds: 20,          // Long polling
           VisibilityTimeout: 30,        // 30 seconds of processing time before message is re-queued
+          MessageAttributeNames: ["SentTimestamp"] as unknown as string[],
         });
 
         const response = await this.sqs.send(command);
@@ -43,6 +45,17 @@ export class SqsConsumer {
 
         for (const message of response.Messages) {
           const body = JSON.parse(message.Body!) as ProcessFileJob | DeleteFileJob;
+
+          if (message.MessageAttributes?.SentTimestamp) {
+            const sentTime = Number(message.MessageAttributes.SentTimestamp);
+            const currentTime = Date.now();
+            const latency = currentTime - sentTime;
+
+            jobQueueLatency.observe(
+              { job_type: body.type },
+              latency,
+            );
+          }
 
           try {
             await this.handleJob(body);
