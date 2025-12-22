@@ -9,7 +9,7 @@ import {
 } from "@aws-sdk/client-cloudfront";
 
 const client = new CloudFrontClient({
-  region: config.S3_REGION || "ap-southeast-2",
+  region: config.AWS_REGION || "ap-southeast-2",
 });
 
 export class CDNService implements ICDNService {

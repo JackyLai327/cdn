@@ -20,7 +20,7 @@ const envSchema = z.object({
 
   // S3 / MinIO
   S3_ENDPOINT: z.string(),
-  S3_REGION: z.string().default("ap-southeast-2"),
+  AWS_REGION: z.string().default("ap-southeast-2"),
   S3_ACCESS_KEY_ID: z.string(),
   S3_SECRET_ACCESS_KEY: z.string(),
   S3_BUCKET_RAW: z.string(),

@@ -1,7 +1,7 @@
 import { JobType } from "../types/job.js";
 import { config } from "../../config/index.js";
-import { type IQueueService } from "./interfaces/queue.js";
 import { measureExternalDuration } from "./metrics.js";
+import { type IQueueService } from "./interfaces/queue.js";
 import { SendMessageCommand, SQSClient } from "@aws-sdk/client-sqs";
 
 const isLocal = config.CDN_ENV === "local";
@@ -11,7 +11,7 @@ export class QueueService implements IQueueService {
 
   constructor() {
     this.sqs = new SQSClient({
-      region: config.S3_REGION,
+      region: config.AWS_REGION,
       ...(isLocal && {
         endpoint: config.SQS_ENDPOINT || "http://localhost:4566",
         credentials: {

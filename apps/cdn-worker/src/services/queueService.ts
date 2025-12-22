@@ -6,10 +6,11 @@ import { GetQueueAttributesCommand, SQSClient } from "@aws-sdk/client-sqs";
 
 export class QueueService implements IQueueService {
   private sqsClient: SQSClient;
+  private updating: boolean = false;
 
   constructor() {
     this.sqsClient = new SQSClient({
-      region: config.S3_REGION || "ap-southeast-2",
+      region: config.AWS_REGION || "ap-southeast-2",
     })
   }
 
@@ -28,11 +29,18 @@ export class QueueService implements IQueueService {
   }
 
   updateQueueDepth = async (): Promise<void> => {
+    if (this.updating) {
+      return;
+    }
+
+    this.updating = true;
     try {
       jobQueueDepth.set(await this.getQueueDepth());
       return;
     } catch (error) {
       logger.error("Worker: failed to update queue depth", error);
+    } finally {
+      this.updating = false;
     }
   }
 }

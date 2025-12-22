@@ -13,7 +13,7 @@ This document lists the environment variables required to run the CDN services.
 | `DB_USER`             | PostgreSQL Username                            |    ✅     |        -         |
 | `DB_PASSWORD`         | PostgreSQL Password                            |    ✅     |        -         |
 | `DB_NAME`             | PostgreSQL Database Name                       |    ✅     |        -         |
-| `S3_REGION`           | AWS Region for S3                              |    ✅     | `ap-southeast-2` |
+| `AWS_REGION`           | AWS Region for S3                              |    ✅     | `ap-southeast-2` |
 | `S3_BUCKET_RAW`       | Bucket for raw file uploads                    |    ✅     |        -         |
 | `S3_BUCKET_PROCESSED` | Bucket for processed files                     |    ✅     |        -         |
 | `QUEUE_URL`           | SQS Queue URL for job dispatch                 |    ✅     |        -         |
@@ -26,7 +26,7 @@ This document lists the environment variables required to run the CDN services.
 | `NODE_ENV`            | Environment mode                   |    ✅     |  `development`   |
 | `SQS_REGION`          | AWS Region for SQS                 |    ✅     | `ap-southeast-2` |
 | `QUEUE_URL`           | SQS Queue URL to poll              |    ✅     |        -         |
-| `S3_REGION`           | AWS Region for S3                  |    ✅     | `ap-southeast-2` |
+| `AWS_REGION`           | AWS Region for S3                  |    ✅     | `ap-southeast-2` |
 | `S3_BUCKET_RAW`       | Bucket to read raw files from      |    ✅     |        -         |
 | `S3_BUCKET_PROCESSED` | Bucket to write processed files to |    ✅     |        -         |
 | `DB_HOST`             | PostgreSQL Hostname                |    ✅     |        -         |
