@@ -8,6 +8,7 @@ import {
   PutObjectCommand,
   DeleteObjectsCommand,
 } from "@aws-sdk/client-s3";
+import { measureS3Duration } from "./metrics.js";
 
 const isLocal = config.CDN_ENV === "local";
 
@@ -30,20 +31,23 @@ export class StorageService implements IStorageService {
 
   async downloadFile(bucket: string, key: string) {
     try {
-      const command = new GetObjectCommand({
-        Bucket: bucket,
-        Key: key,
+      const result = measureS3Duration("downloadFile", bucket, async () => {
+        const command = new GetObjectCommand({
+          Bucket: bucket,
+          Key: key,
+        });
+        const response = await this.s3.send(command);
+
+        const stream = response.Body as Readable;
+        const chucks: Uint8Array[] = [];
+
+        for await (const chunk of stream) {
+          chucks.push(chunk);
+        }
+
+        return Buffer.concat(chucks);
       });
-      const response = await this.s3.send(command);
-
-      const stream = response.Body as Readable;
-      const chucks: Uint8Array[] = [];
-
-      for await (const chunk of stream) {
-        chucks.push(chunk);
-      }
-
-      return Buffer.concat(chucks);
+      return result;
     } catch (error) {
       logger.error(`Worker: failed to download file ${key}`, error);
       throw error;
@@ -57,14 +61,17 @@ export class StorageService implements IStorageService {
     contentType: string
   ) {
     try {
-      const command = new PutObjectCommand({
-        Bucket: bucket,
-        Key: key,
-        Body: body,
-        ContentType: contentType,
-      });
+      const result = measureS3Duration("uploadFile", bucket, async () => {
+        const command = new PutObjectCommand({
+          Bucket: bucket,
+          Key: key,
+          Body: body,
+          ContentType: contentType,
+        });
 
-      await this.s3.send(command);
+        await this.s3.send(command);
+      });
+      return result;
     } catch (error) {
       logger.error(`Worker: failed to upload file ${key}`, error);
       throw error;
@@ -73,25 +80,30 @@ export class StorageService implements IStorageService {
 
   async deleteFiles(keys: string[]) {
     try {
-      const rawKeys = keys.filter((key) => key.startsWith("raw/"));
-      const processedKeys = keys.filter((key) => key.startsWith("processed/"));
+      const result = measureS3Duration("deleteFiles", "*", async () => {
+        const rawKeys = keys.filter((key) => key.startsWith("raw/"));
+        const processedKeys = keys.filter((key) =>
+          key.startsWith("processed/")
+        );
 
-      const deleteRawCommand = new DeleteObjectsCommand({
-        Bucket: config.S3_BUCKET_RAW,
-        Delete: {
-          Objects: rawKeys.map((key) => ({ Key: key })),
-        },
+        const deleteRawCommand = new DeleteObjectsCommand({
+          Bucket: config.S3_BUCKET_RAW,
+          Delete: {
+            Objects: rawKeys.map((key) => ({ Key: key })),
+          },
+        });
+
+        const deleteProcessedCommand = new DeleteObjectsCommand({
+          Bucket: config.S3_BUCKET_PROCESSED,
+          Delete: {
+            Objects: processedKeys.map((key) => ({ Key: key })),
+          },
+        });
+
+        await this.s3.send(deleteRawCommand);
+        await this.s3.send(deleteProcessedCommand);
       });
-
-      const deleteProcessedCommand = new DeleteObjectsCommand({
-        Bucket: config.S3_BUCKET_PROCESSED,
-        Delete: {
-          Objects: processedKeys.map((key) => ({ Key: key })),
-        },
-      });
-
-      await this.s3.send(deleteRawCommand);
-      await this.s3.send(deleteProcessedCommand);
+      return result;
     } catch (error) {
       logger.error(`Worker: failed to delete files ${keys}`, error);
       throw error;

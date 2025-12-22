@@ -4,9 +4,9 @@ import { deleteFile } from "./jobs/deleteFile.js";
 import { processFile } from "./jobs/processFile.js";
 import { dbService } from "./services/dbService.js";
 import { SqsConsumer } from "./queue/sqsConsumer.js";
+import { startMetricsServer } from "./services/metrics.js";
 import { JobClaimStatus } from "./services/interfaces/db.js";
 import { DeleteFileJob, JobType, ProcessFileJob } from "./types/job.js";
-
 async function handleJob(job: ProcessFileJob | DeleteFileJob) {
   const { jobId } = job;
   logger.info(`Worker: received job ${jobId}`);
@@ -43,9 +43,11 @@ async function main() {
   const consumer = new SqsConsumer(handleJob);
   consumer.start();
   startPurgeLoop();
+  startMetricsServer(9091);
 }
 
 main().catch((err) => {
   logger.error("Worker: failed to start", err);
   process.exit(1);
 })
+
