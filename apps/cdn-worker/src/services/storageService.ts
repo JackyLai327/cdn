@@ -17,7 +17,7 @@ export class StorageService implements IStorageService {
 
   constructor() {
     this.s3 = new S3Client({
-      region: config.S3_REGION,
+      region: config.AWS_REGION,
       ...(isLocal && {
         endpoint: config.S3_ENDPOINT,
         forcePathStyle: true,

@@ -106,7 +106,6 @@ export const measureJobDuration = async <T>(
 
   const endTime = jobDuration.startTimer({
     job_type: jobType,
-    status,
   });
 
   try {

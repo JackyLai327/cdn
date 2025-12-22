@@ -47,7 +47,7 @@ async function main() {
   startMetricsServer(9091);
 
   setInterval(() => {
-    queueService.checkQueueDepth();
+    queueService.updateQueueDepth();
   }, 30 * 1000);
 }
 

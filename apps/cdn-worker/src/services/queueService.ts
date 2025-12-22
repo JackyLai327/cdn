@@ -1,32 +1,46 @@
 import { logger } from "../../lib/logger.js";
+import { jobQueueDepth } from "./metrics.js";
 import { config } from "../../config/index.js";
 import { IQueueService } from "./interfaces/queue.js";
-import { jobProcessedTotal, jobQueueDepth } from "./metrics.js";
 import { GetQueueAttributesCommand, SQSClient } from "@aws-sdk/client-sqs";
 
 export class QueueService implements IQueueService {
   private sqsClient: SQSClient;
+  private updating: boolean = false;
 
   constructor() {
     this.sqsClient = new SQSClient({
-      region: config.S3_REGION || "ap-southeast-2",
+      region: config.AWS_REGION || "ap-southeast-2",
     })
   }
 
-  checkQueueDepth = async (): Promise<void> => {
-    try {
-      const command = new GetQueueAttributesCommand({
-        QueueUrl: config.QUEUE_URL,
-        AttributeNames: ["ApproximateNumberOfMessages"],
-      })
-      const result = await this.sqsClient.send(command)
-      const depth = parseInt(result.Attributes?.ApproximateNumberOfMessages || "0")
+  getQueueDepth = async (): Promise<number> => {
+    const command = new GetQueueAttributesCommand({
+      QueueUrl: config.QUEUE_URL,
+      AttributeNames: [
+        "ApproximateNumberOfMessages",
+        "ApproximateNumberOfMessagesNotVisible",
+      ]
+    })
 
-      jobQueueDepth.set(depth);
+    const response = await this.sqsClient.send(command);
+
+    return Number(response.Attributes?.ApproximateNumberOfMessages || 0) + Number(response.Attributes?.ApproximateNumberOfMessagesNotVisible || 0);
+  }
+
+  updateQueueDepth = async (): Promise<void> => {
+    if (this.updating) {
+      return;
+    }
+
+    this.updating = true;
+    try {
+      jobQueueDepth.set(await this.getQueueDepth());
+      return;
     } catch (error) {
-      logger.error(error)
-      jobProcessedTotal.inc({ job_type: "queue_depth_check", status: "failed" });
-      throw error;
+      logger.error("Worker: failed to update queue depth", error);
+    } finally {
+      this.updating = false;
     }
   }
 }
