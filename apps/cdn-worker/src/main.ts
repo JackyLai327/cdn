@@ -4,6 +4,7 @@ import { deleteFile } from "./jobs/deleteFile.js";
 import { processFile } from "./jobs/processFile.js";
 import { dbService } from "./services/dbService.js";
 import { SqsConsumer } from "./queue/sqsConsumer.js";
+import { queueService } from "./services/queueService.js";
 import { startMetricsServer } from "./services/metrics.js";
 import { JobClaimStatus } from "./services/interfaces/db.js";
 import { DeleteFileJob, JobType, ProcessFileJob } from "./types/job.js";
@@ -44,6 +45,10 @@ async function main() {
   consumer.start();
   startPurgeLoop();
   startMetricsServer(9091);
+
+  setInterval(() => {
+    queueService.checkQueueDepth();
+  }, 30 * 1000);
 }
 
 main().catch((err) => {
