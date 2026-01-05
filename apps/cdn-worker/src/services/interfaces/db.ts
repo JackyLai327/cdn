@@ -3,8 +3,7 @@ import { FileMetadata } from "../../types/fileMetadata.js";
 
 export enum JobClaimStatus {
   CLAIMED,
-  ALREADY_COMPLETED,
-  LOCKED_BY_OTHER
+  NOT_CLAIMED
 }
 
 export interface IDBService {
@@ -68,4 +67,30 @@ export interface IDBService {
    * @param jobId
    */
   deleteJob(jobId: string): Promise<void>;
+
+  /**
+   * Update the last error of a job
+   * @param jobId
+   * @param error
+   */
+  updateJobLastError(jobId: string, error: string): Promise<void>;
+
+  /**
+   * Update the last error type of a job
+   * @param jobId
+   * @param errorType
+   */
+  updateJobLastErrorType(jobId: string, errorType: string): Promise<void>;
+
+  /**
+   * Clear stuck files
+   * @param batchSize
+   */
+  clearStuckFiles(batchSize: number): Promise<void>;
+
+  /**
+   * Check if a job has reached its max attempts
+   * @param jobId
+   */
+  jobMaxAttemptsReached(jobId: string): Promise<boolean>;
 }

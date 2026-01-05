@@ -1,4 +1,5 @@
 import { Pool } from "pg";
+import { JobType } from "../types/job.js";
 import { config } from "../../config/index.js";
 import { type IDBService } from "./interfaces/db.js";
 import { measureDBQueryDuration } from "./metrics.js";
@@ -170,6 +171,20 @@ export class DBService implements IDBService {
       () => pool.query(`SELECT * FROM jobs WHERE job_id=$1;`, [jobId])
     );
     return result.rows[0];
+  }
+
+  async createJob(jobId: string, jobType: JobType): Promise<void> {
+    const result = measureDBQueryDuration(
+      "createJob",
+      "jobs",
+      async () => {
+      await pool.query(
+        `INSERT INTO jobs (job_id, job_type, status, created_at, updated_at) VALUES ($1, $2, 'queued', NOW(), NOW());`,
+        [jobId, jobType]
+      );
+      return;
+    });
+    return result;
   }
 }
 
