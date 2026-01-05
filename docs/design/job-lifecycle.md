@@ -19,23 +19,23 @@ It prevents inconsistent behaviour across API, worker, retries and DLQ.
 - `processing`: a worker has claimed the job and is working on it
 - `completed`: the job has been successfully processed
 - `failed_retryable`: the job has failed to process but can be retried
-- `dead`: the job has failed to process and cannot be retried
+- `failed`: the job has failed to process and cannot be retried
 
 ### Transitions
 
 - `queued` -> `processing`: a worker claims the job
 - `processing` -> `completed`: the job is successfully processed
 - `processing` -> `failed_retryable`: the job fails to process but can be retried
-- `processing` -> `dead`: the job fails to process and cannot be retried
+- `processing` -> `failed`: the job fails to process and cannot be retried
 - `failed_retryable` -> `processing`: the job is retried
-- `failed_retryable` -> `dead`: the job fails to process and cannot be retried
+- `failed_retryable` -> `failed`: the job fails to process and cannot be retried
 
 ### Forbidden transitions
 
 - `completed` -> *any*
-- `dead` -> *any*
+- `failed` -> *any*
 - `queued` -> `failed_retryable`
-- `queued` -> `dead`
+- `queued` -> `failed`
 - `queued` -> `completed`
 
 ## Ownership rules
@@ -46,21 +46,23 @@ It prevents inconsistent behaviour across API, worker, retries and DLQ.
   - request cancellation/deletion by creating a new job type
 
 - API **must not**:
-  - mark jobs as `processing`, `completed` or `dead`
+  - mark jobs as `processing`, `completed` or `failed`
 
 - Worker **may*:
   - claim a job (`queued` -> `processing`)
   - complete a job (`processing` -> `completed`)
-  - fail a job (`processing` -> `failed_retryable` or `dead`)
+  - fail a job (`processing` -> `failed_retryable` or `failed`)
   - retry a job (`failed_retryable` -> `processing`)
-  - delete a job (`failed_retryable` -> `dead`)
+  - delete a job (`failed_retryable` -> `failed`)
 
 ## Idempotency and duplicates
 
-- This is system is idempotent (exactly once processing)
+- This system provides **effectively-once semantics via idempotency**
 - SQS messages may be duplicated
-- A job can be claimed only once using `job_id` and `locked_at` timestamp
-- Jobs that are marked `completed` or `dead` cannot be processed
+- Job processing is made safe through:
+  - atomicity of job claim
+  - idempotency of job processing
+  - terminal state of job processing ('completed' or 'failed')
 
 ## Claiming
 
@@ -68,13 +70,19 @@ It prevents inconsistent behaviour across API, worker, retries and DLQ.
 - `queued` -> `processing`
 - If the job is locked by another worker and the lock is older than 10 minutes, the worker can claim the job
 - If the job is locked by another worker and the lock is younger than 10 minutes, the worker will not claim the job
-- A worker only picks up jobs that are in the `queued` state
+- A worker only picks up jobs that are in the `queued` or `failed_retryable` state, or when `processing` jobs are older than 10 minutes
+- Job claim MUST be done via a single atomic DB update
+- The update must:
+  - match on job_id
+  - require state = failed_retryable OR (state = processing AND locked_at < now - locked_timeout)
+- If the update affects 0 rows, the claim failed and the worker must not claim the job
+- Jobs in `completed` or `failed` state must not be claimed
 
 ## Retry semantics
 
 - `processing` -> `failed_retryable`: the job fails to process but can be retried
 - `failed_retryable` -> `processing`: the job is retried
-- `processing` -> `dead`: the job fails to process and cannot be retried
+- `processing` -> `failed`: the job fails to process and cannot be retried
 
 ## Observability expectations
 
@@ -139,7 +147,7 @@ For every attempt, the following must be logged:
 
 - histogram
 - duration of job processing
-- labels: `job_id`, `status`
+- labels: `job_type`, `status`
 - buckets: [0.1, 0.3, 0.5, 0.7, 1, 3, 5, 7, 10]
 
 ### `job_queue_latency_milliseconds`

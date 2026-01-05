@@ -19,7 +19,14 @@ CREATE TABLE IF NOT EXISTS files (
 
 CREATE TABLE IF NOT EXISTS jobs (
   job_id            TEXT PRIMARY KEY,
+  job_type          TEXT NOT NULL,
   status            TEXT NOT NULL,
+  attempt_count     INT NOT NULL DEFAULT 0,
+  max_attempts      INT NOT NULL DEFAULT 3,
+
+  last_error        TEXT NULL,
+  last_error_type   TEXT NULL,
+
   created_at        TIMESTAMP DEFAULT NOW(),
   updated_at        TIMESTAMP DEFAULT NOW(),
   locked_at         TIMESTAMPTZ NULL,

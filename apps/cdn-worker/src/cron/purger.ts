@@ -36,9 +36,30 @@ export const startPurgeLoop = () => {
     return result;
   };
 
+  const clearStuckFiles = async () => {
+    const result = measureJobDuration(
+      "clearStuckFiles",
+      "success",
+      async () => {
+        try {
+          await dbService.clearStuckFiles(20);
+          logger.info("Purger: cleared stuck files");
+        } catch (error) {
+          logger.error("Purger: failed to clear stuck files", error);
+          throw error;
+        }
+      }
+    )
+    return result;
+  }
+
   // Run once at start up
   purge();
+  clearStuckFiles();
 
   // Run every 10 minutes
   setInterval(purge, 10 * 60 * 1000);
+
+  // Run every 5 minutes
+  setInterval(clearStuckFiles, 5 * 60 * 1000);
 };

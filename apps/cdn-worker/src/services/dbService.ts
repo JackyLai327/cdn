@@ -83,28 +83,31 @@ export class DBService implements IDBService {
   async claimJob(jobId: string): Promise<JobClaimStatus> {
     const result = measureDBDuration("claimJob", async () => {
       const result = await this.db.query(
-        `
-      INSERT INTO jobs (job_id, status, locked_at)
-      VALUES ($1, 'processing', NOW())
-      ON CONFLICT (job_id) DO UPDATE
-      SET status = 'processing', updated_at = NOW(), locked_at = NOW()
-      WHERE jobs.status = 'failed' OR (jobs.status = 'processing' AND jobs.locked_at < NOW() - '10 minutes'::interval)
-      RETURNING job_id;
-    `,
+        `UPDATE jobs
+        SET
+          status = 'processing',
+          updated_at = NOW(),
+          locked_at = NOW(),
+          attempt_count = attempt_count + 1
+        WHERE
+          job_id = $1
+          AND (
+            status = 'queued'
+            OR status = 'failed_retryable'
+            OR (
+              status = 'processing'
+              AND locked_at < NOW() - INTERVAL '10 minutes'
+            )
+          )
+        RETURNING job_id;`,
         [jobId]
       );
 
-      if (result.rows.length === 0) {
-        const current = await this.db.query(
-          "SELECT status FROM jobs WHERE job_id=$1",
-          [jobId]
-        );
-        if (current.rows[0]?.status === "completed")
-          return JobClaimStatus.ALREADY_COMPLETED;
-        if (current.rows[0]?.status === "processing")
-          return JobClaimStatus.LOCKED_BY_OTHER;
+      if (result.rows.length === 1) {
+        return JobClaimStatus.CLAIMED;
       }
-      return JobClaimStatus.CLAIMED;
+
+      return JobClaimStatus.NOT_CLAIMED;
     });
     return result;
   }
@@ -124,6 +127,59 @@ export class DBService implements IDBService {
     const result = measureDBDuration("deleteJob", async () => {
       await this.db.query(`DELETE FROM jobs WHERE job_id=$1;`, [jobId]);
       return;
+    });
+    return result;
+  }
+
+  async updateJobLastError(jobId: string, error: string): Promise<void> {
+    const result = measureDBDuration("updateJobLastError", async () => {
+      await this.db.query(
+        `UPDATE jobs SET last_error=$1, updated_at=NOW() WHERE job_id=$2;`,
+        [error, jobId]
+      );
+      return;
+    });
+    return result;
+  }
+
+  async updateJobLastErrorType(
+    jobId: string,
+    errorType: string
+  ): Promise<void> {
+    const result = measureDBDuration("updateJobLastErrorType", async () => {
+      await this.db.query(
+        `UPDATE jobs SET last_error_type=$1, updated_at=NOW() WHERE job_id=$2;`,
+        [errorType, jobId]
+      );
+      return;
+    });
+    return result;
+  }
+
+  async clearStuckFiles(batchSize: number): Promise<void> {
+    const result = measureDBDuration("clearStuckFiles", async () => {
+      await this.db.query(
+        `DELETE FROM files WHERE (status='pending_upload') AND updated_at < NOW() - '24 hours'::interval LIMIT $1;`,
+        [batchSize]
+      );
+      return;
+    });
+    return result;
+  }
+
+  async jobMaxAttemptsReached(jobId: string): Promise<boolean> {
+    const result = measureDBDuration("jobMaxAttemptsReached", async () => {
+      const maxAttemptsResult = await this.db.query(
+        `SELECT max_attempts FROM jobs WHERE job_id=$1`,
+        [jobId]
+      );
+      const attemptCountResult = await this.db.query(
+        `SELECT attempt_count FROM jobs WHERE job_id=$1`,
+        [jobId]
+      );
+      const maxAttempts = maxAttemptsResult.rows[0]?.max_attempts || 3;
+      const attemptCount = attemptCountResult.rows[0]?.attempt_count || 0;
+      return attemptCount >= maxAttempts;
     });
     return result;
   }

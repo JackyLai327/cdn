@@ -1,4 +1,5 @@
 import { JobType } from "../types/job.js";
+import { dbService } from "./dbService.js";
 import { config } from "../../config/index.js";
 import { measureExternalDuration } from "./metrics.js";
 import { type IQueueService } from "./interfaces/queue.js";
@@ -38,7 +39,10 @@ export class QueueService implements IQueueService {
     await measureExternalDuration(
       "sqs",
       "sendMessage",
-      async () => this.sqs.send(command)
+      async () => {
+        await dbService.createJob(payload.jobId, payload.type);
+        await this.sqs.send(command)
+      }
     );
   }
 }

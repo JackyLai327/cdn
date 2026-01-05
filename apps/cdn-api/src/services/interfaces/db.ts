@@ -1,3 +1,5 @@
+import { JobType } from "../../types/job.js";
+
 export interface IDBService {
   /**
    * Create a new file record
@@ -128,4 +130,13 @@ export interface IDBService {
     updated_at: string;
     locked_at: string;
   } | null>;
+
+  /**
+   * Create a new job record
+   *
+   * @param jobId: Job ID
+   * @param jobType: Job type
+   * @returns Promise<void>: Resolves when the job record is created
+   */
+  createJob(jobId: string, jobType: JobType): Promise<void>;
 }
