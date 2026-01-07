@@ -1,3 +1,11 @@
+CREATE TYPE job_status AS ENUM (
+  'QUEUED',
+  'PROCESSING',
+  'COMPLETED',
+  'FAILED_RETRYABLE',
+  'FAILED'
+);
+
 CREATE TABLE IF NOT EXISTS files (
   id                UUID PRIMARY KEY,
   user_id           TEXT NOT NULL,
@@ -20,7 +28,7 @@ CREATE TABLE IF NOT EXISTS files (
 CREATE TABLE IF NOT EXISTS jobs (
   job_id            TEXT PRIMARY KEY,
   job_type          TEXT NOT NULL,
-  status            TEXT NOT NULL,
+  status            job_status NOT NULL,
   attempt_count     INT NOT NULL DEFAULT 0,
   max_attempts      INT NOT NULL DEFAULT 3,
 
