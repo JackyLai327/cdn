@@ -18,3 +18,16 @@ export type DeleteFileJob = {
   fileId: string;
   userId: string;
 };
+
+export type Job = {
+  jobId: string;
+  jobType: JobType;
+  status: string;
+  attemptCount: number;
+  maxAttempts: number;
+  lastError: string | null;
+  lastErrorType: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  lockedAt: Date | null;
+}

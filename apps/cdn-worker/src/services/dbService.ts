@@ -1,9 +1,12 @@
 import { Pool } from "pg";
+import { Job } from "../types/job.js";
 import { Variant } from "../types/variant.js";
 import { config } from "../../config/index.js";
 import { measureDBDuration } from "./metrics.js";
+import { JobStatus } from "../types/jobStatus.js";
 import { FileMetadata } from "../types/fileMetadata.js";
 import { IDBService, JobClaimStatus } from "./interfaces/db.js";
+import { assertValidTransition } from "../utils/stateTransitions.js";
 
 export class DBService implements IDBService {
   private db = new Pool({
@@ -112,7 +115,26 @@ export class DBService implements IDBService {
     return result;
   }
 
-  async updateJobStatus(jobId: string, status: string): Promise<void> {
+  async getJob(jobId: string): Promise<Job> {
+    const result = measureDBDuration("getJob", async () => {
+      const result = await this.db.query(`SELECT * FROM jobs WHERE job_id=$1;`, [
+        jobId,
+      ]);
+      return result.rows[0];
+    });
+    return result;
+  }
+
+  async updateJobStatus(jobId: string, status: JobStatus): Promise<void> {
+    const job = await this.getJob(jobId);
+    if (!job) {
+      throw new Error(`Job ${jobId} not found`);
+    }
+
+    const from = job.status?.toUpperCase() as JobStatus;
+
+    assertValidTransition(from, status);
+
     const result = measureDBDuration("updateJobStatus", async () => {
       await this.db.query(
         `UPDATE jobs SET status=$1, updated_at=NOW() WHERE job_id=$2;`,

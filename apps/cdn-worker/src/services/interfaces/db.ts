@@ -1,3 +1,4 @@
+import { Job } from "../../types/job.js";
 import { Variant } from "../../types/variant.js";
 import { FileMetadata } from "../../types/fileMetadata.js";
 
@@ -54,6 +55,12 @@ export interface IDBService {
    * @param jobId
    */
   claimJob(jobId: string): Promise<JobClaimStatus>;
+
+  /**
+   * Get a job by ID
+   * @param jobId
+   */
+  getJob(jobId: string): Promise<Job>;
 
   /**
    * Update the status of a job

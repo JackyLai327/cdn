@@ -1,8 +1,8 @@
 import { Pool } from "pg";
-import { JobType } from "../types/job.js";
 import { config } from "../../config/index.js";
 import { type IDBService } from "./interfaces/db.js";
 import { measureDBQueryDuration } from "./metrics.js";
+import { JobStatusEnum, JobType } from "../types/job.js";
 const pool = new Pool({
   host: config.DB_HOST,
   port: Number(config.DB_HOST),
@@ -179,8 +179,8 @@ export class DBService implements IDBService {
       "jobs",
       async () => {
       await pool.query(
-        `INSERT INTO jobs (job_id, job_type, status, created_at, updated_at) VALUES ($1, $2, 'queued', NOW(), NOW());`,
-        [jobId, jobType]
+        `INSERT INTO jobs (job_id, job_type, status, created_at, updated_at) VALUES ($1, $2, $3, NOW(), NOW());`,
+        [jobId, jobType, JobStatusEnum.QUEUED]
       );
       return;
     });

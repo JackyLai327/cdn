@@ -4,6 +4,7 @@ import { deleteFile } from "./jobs/deleteFile.js";
 import { processFile } from "./jobs/processFile.js";
 import { dbService } from "./services/dbService.js";
 import { SqsConsumer } from "./queue/sqsConsumer.js";
+import { JobStatusEnum } from "./types/jobStatus.js";
 import { queueService } from "./services/queueService.js";
 import { startMetricsServer } from "./services/metrics.js";
 import { JobClaimStatus } from "./services/interfaces/db.js";
@@ -28,17 +29,17 @@ async function handleJob(job: ProcessFileJob | DeleteFileJob) {
       await processFile(job);
     }
 
-    await dbService.updateJobStatus(jobId, "completed");
+    await dbService.updateJobStatus(jobId, JobStatusEnum.COMPLETED);
   } catch (error: unknown) {
     logger.error(`Worker: failed to process job ${jobId}:`, error);
 
     const maxAttemptsReached = await dbService.jobMaxAttemptsReached(jobId);
     if (maxAttemptsReached) {
-      await dbService.updateJobStatus(jobId, "failed");
+      await dbService.updateJobStatus(jobId, JobStatusEnum.FAILED);
       return;
     }
 
-    await dbService.updateJobStatus(jobId, "failed_retryable");
+    await dbService.updateJobStatus(jobId, JobStatusEnum.FAILED_RETRYABLE);
 
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     const errorName = error instanceof Error ? error.name : "UnknownError";
