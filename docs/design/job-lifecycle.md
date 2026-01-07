@@ -223,3 +223,9 @@ For every attempt, the following must be logged:
 - gauge
 - number of jobs in the queue
 - labels: `job_type`
+
+### `job_retry_schedule_total`
+
+- counter
+- total number of jobs scheduled for retry
+- labels: `job_type`

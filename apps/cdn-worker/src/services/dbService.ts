@@ -1,12 +1,12 @@
 import { Pool } from "pg";
-import { Job } from "../types/job.js";
 import { Variant } from "../types/variant.js";
+import { Job, JobType } from "../types/job.js";
 import { config } from "../../config/index.js";
-import { measureDBDuration } from "./metrics.js";
 import { JobStatus } from "../types/jobStatus.js";
 import { FileMetadata } from "../types/fileMetadata.js";
 import { IDBService, JobClaimStatus } from "./interfaces/db.js";
 import { assertValidTransition } from "../utils/stateTransitions.js";
+import { jobRetryScheduleTotal, measureDBDuration } from "./metrics.js";
 
 export class DBService implements IDBService {
   private db = new Pool({
@@ -96,7 +96,10 @@ export class DBService implements IDBService {
           job_id = $1
           AND (
             status = 'queued'
-            OR status = 'failed_retryable'
+            OR (
+              status = 'failed_retryable'
+              AND (retry_at IS NULL OR retry_at <= NOW())
+            )
             OR (
               status = 'processing'
               AND locked_at < NOW() - INTERVAL '10 minutes'
@@ -203,6 +206,19 @@ export class DBService implements IDBService {
       const attemptCount = attemptCountResult.rows[0]?.attempt_count || 0;
       return attemptCount >= maxAttempts;
     });
+    return result;
+  }
+
+  async updateJobRetryAt(jobId: string, jobType: JobType, retryMs: number): Promise<void> {
+    const result = measureDBDuration("updateJobRetryAt", async () => {
+      await this.db.query(
+        `UPDATE jobs SET retry_at=NOW() + $1 * INTERVAL '1 millisecond', updated_at=NOW() WHERE job_id=$2;`,
+        [retryMs, jobId]
+      );
+      return;
+    });
+
+    jobRetryScheduleTotal.labels(jobType).inc();
     return result;
   }
 }
