@@ -1,6 +1,6 @@
-import { JobStatusType } from "../types/jobStatus.js";
+import { JobStatus } from "../types/jobStatus.js";
 
-export const ALLOWED_TRANSITIONS: Record<JobStatusType, JobStatusType[]> = {
+export const ALLOWED_TRANSITIONS: Record<JobStatus, JobStatus[]> = {
   QUEUED: ["PROCESSING"],
   PROCESSING: ["COMPLETED", "FAILED_RETRYABLE", "FAILED"],
   COMPLETED: [],
@@ -9,8 +9,8 @@ export const ALLOWED_TRANSITIONS: Record<JobStatusType, JobStatusType[]> = {
 }
 
 export const assertValidTransition = (
-  from: JobStatusType,
-  to: JobStatusType
+  from: JobStatus,
+  to: JobStatus
 ) => {
   if (!ALLOWED_TRANSITIONS[from]?.includes(to)) {
     throw new Error(`Invalid transition from ${from} to ${to}`)
