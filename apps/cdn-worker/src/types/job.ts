@@ -20,14 +20,14 @@ export type DeleteFileJob = {
 };
 
 export type Job = {
-  jobId: string;
-  jobType: JobType;
+  job_id: string;
+  job_type: JobType;
   status: string;
-  attemptCount: number;
-  maxAttempts: number;
-  lastError: string | null;
-  lastErrorType: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-  lockedAt: Date | null;
+  attempt_count: number;
+  max_attempts: number;
+  last_error: string | null;
+  last_error_type: string | null;
+  created_at: Date;
+  updated_at: Date;
+  locked_at: Date | null;
 }

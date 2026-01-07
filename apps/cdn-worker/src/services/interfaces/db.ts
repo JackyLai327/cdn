@@ -1,5 +1,5 @@
-import { Job } from "../../types/job.js";
 import { Variant } from "../../types/variant.js";
+import { Job, JobType } from "../../types/job.js";
 import { FileMetadata } from "../../types/fileMetadata.js";
 
 export enum JobClaimStatus {
@@ -100,4 +100,12 @@ export interface IDBService {
    * @param jobId
    */
   jobMaxAttemptsReached(jobId: string): Promise<boolean>;
+
+  /**
+   * Update the retry at time of a job
+   * @param jobId
+   * @param jobType
+   * @param retryMs
+   */
+  updateJobRetryAt(jobId: string, jobType: JobType, retryMs: number): Promise<void>;
 }

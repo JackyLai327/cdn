@@ -20,22 +20,24 @@ CREATE TABLE IF NOT EXISTS files (
 
   visibility        TEXT NOT NULL DEFAULT 'private', -- 'public', 'private'
 
-  created_at        TIMESTAMP DEFAULT NOW(),
-  updated_at        TIMESTAMP DEFAULT NOW(),
-  deleted_at        TIMESTAMP NULL,
+  created_at        TIMESTAMPTZ DEFAULT NOW(),
+  updated_at        TIMESTAMPTZ DEFAULT NOW(),
+  deleted_at        TIMESTAMPTZ NULL,
 );
 
 CREATE TABLE IF NOT EXISTS jobs (
   job_id            TEXT PRIMARY KEY,
   job_type          TEXT NOT NULL,
+
   status            job_status NOT NULL,
   attempt_count     INT NOT NULL DEFAULT 0,
   max_attempts      INT NOT NULL DEFAULT 3,
+  retry_at          TIMESTAMPTZ NULL,
 
   last_error        TEXT NULL,
   last_error_type   TEXT NULL,
 
-  created_at        TIMESTAMP DEFAULT NOW(),
-  updated_at        TIMESTAMP DEFAULT NOW(),
+  created_at        TIMESTAMPTZ DEFAULT NOW(),
+  updated_at        TIMESTAMPTZ DEFAULT NOW(),
   locked_at         TIMESTAMPTZ NULL,
 );

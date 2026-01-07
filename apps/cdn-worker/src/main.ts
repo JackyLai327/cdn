@@ -5,6 +5,7 @@ import { processFile } from "./jobs/processFile.js";
 import { dbService } from "./services/dbService.js";
 import { SqsConsumer } from "./queue/sqsConsumer.js";
 import { JobStatusEnum } from "./types/jobStatus.js";
+import { computeRetryDelay } from "./utils/retry.js";
 import { queueService } from "./services/queueService.js";
 import { startMetricsServer } from "./services/metrics.js";
 import { JobClaimStatus } from "./services/interfaces/db.js";
@@ -39,7 +40,10 @@ async function handleJob(job: ProcessFileJob | DeleteFileJob) {
       return;
     }
 
+    const jobDB = await dbService.getJob(jobId);
+    const delayMs = computeRetryDelay(jobDB.attempt_count);
     await dbService.updateJobStatus(jobId, JobStatusEnum.FAILED_RETRYABLE);
+    await dbService.updateJobRetryAt(jobId, jobType, delayMs);
 
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     const errorName = error instanceof Error ? error.name : "UnknownError";

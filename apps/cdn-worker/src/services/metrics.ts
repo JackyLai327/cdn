@@ -97,6 +97,13 @@ export const jobQueueDepth = new client.Gauge({
   registers: [register],
 })
 
+export const jobRetryScheduleTotal = new client.Counter({
+  name: "job_retry_schedule_total",
+  help: "total number of jobs scheduled for retry",
+  labelNames: ["job_type"],
+  registers: [register],
+})
+
 export const measureJobDuration = async <T>(
   jobType: string,
   status: string,
