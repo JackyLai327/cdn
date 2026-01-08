@@ -9,7 +9,8 @@
     "start": "tsx dist/src/main.js",
     "dev": "tsx watch src/main.ts",
     "ci": "npm run build && npm run lint",
-    "lint": "eslint . --cache"
+    "lint": "eslint . --cache",
+    "purge": "tsx dist/src/cli/purge.js"
   },
   "keywords": [],
   "author": "",

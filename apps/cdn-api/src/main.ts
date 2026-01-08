@@ -79,3 +79,17 @@ server.on("error", (error) => {
     env: config.NODE_ENV,
   });
 });
+
+server.on("SIGINT", () => {
+  logger.info("Server is closing");
+  server.close(() => {
+    logger.info("Server closed");
+  });
+});
+
+server.on("SIGTERM", () => {
+  logger.info("Server is closing");
+  server.close(() => {
+    logger.info("Server closed");
+  });
+});

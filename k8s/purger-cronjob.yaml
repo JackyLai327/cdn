@@ -1,0 +1,22 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: purger-cronjob
+  namespace: cdn
+spec:
+  schedule: "0 * * * *"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: purger
+              image: 791954933241.dkr.ecr.ap-southeast-2.amazonaws.com/cdn-worker:latest
+              command: ["npm", "run", "purge"]
+              envFrom:
+                - configMapRef:
+                    name: cdn-config
+                - secretRef:
+                    name: cdn-secrets
+          restartPolicy: OnFailure
