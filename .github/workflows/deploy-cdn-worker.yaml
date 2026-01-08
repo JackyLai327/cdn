@@ -146,5 +146,6 @@ jobs:
           kubectl apply -f ../../k8s/worker-deployment.yaml
           kubectl rollout restart deployment/cdn-worker
           kubectl rollout status deployment/cdn-worker
+          kubectl apply -f ../../k8s/purger-cronjob.yaml
           rm ../../k8s/configmap-generated.yaml
           rm ../../k8s/secrets-generated.yaml

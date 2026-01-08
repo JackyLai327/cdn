@@ -3,16 +3,25 @@ import { config } from "../../config/index.js";
 import { dbService } from "../services/dbService.js";
 import { measureJobDuration } from "../services/metrics.js";
 
-export const startPurgeLoop = () => {
-  const purge = async () => {
+class Purger {
+
+  private batchSize: number;
+  private permanentDeleteAfterDays: number;
+
+  constructor() {
+    this.batchSize = Number(config.PURGE_BATCH_SIZE);
+    this.permanentDeleteAfterDays = Number(config.PERMANENT_DELETE_AFTER_DAYS);
+  }
+
+  purge = async () => {
     const result = measureJobDuration(
       "purgeExpiredFiles",
       "success",
       async () => {
         try {
           const candidates = await dbService.getFilesReadyForPurge(
-            Number(config.PURGE_BATCH_SIZE),
-            Number(config.PERMANENT_DELETE_AFTER_DAYS)
+            this.batchSize,
+            this.permanentDeleteAfterDays
           );
 
           if (candidates.length === 0) {
@@ -36,7 +45,7 @@ export const startPurgeLoop = () => {
     return result;
   };
 
-  const clearStuckFiles = async () => {
+  clearStuckFiles = async () => {
     const result = measureJobDuration(
       "clearStuckFiles",
       "success",
@@ -53,13 +62,10 @@ export const startPurgeLoop = () => {
     return result;
   }
 
-  // Run once at start up
-  purge();
-  clearStuckFiles();
-
-  // Run every 10 minutes
-  setInterval(purge, 10 * 60 * 1000);
-
-  // Run every 5 minutes
-  setInterval(clearStuckFiles, 5 * 60 * 1000);
+  run = async () => {
+    await this.purge()
+    await this.clearStuckFiles()
+  }
 };
+
+export const purger = new Purger();

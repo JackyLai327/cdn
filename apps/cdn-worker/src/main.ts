@@ -1,5 +1,4 @@
 import { logger } from "../lib/logger.js";
-import { startPurgeLoop } from "./cron/purger.js";
 import { deleteFile } from "./jobs/deleteFile.js";
 import { processFile } from "./jobs/processFile.js";
 import { dbService } from "./services/dbService.js";
@@ -57,7 +56,7 @@ async function handleJob(job: ProcessFileJob | DeleteFileJob) {
 async function main() {
   const consumer = new SqsConsumer(handleJob);
   consumer.start();
-  startPurgeLoop();
+
   startMetricsServer(9091);
 
   setInterval(() => {
