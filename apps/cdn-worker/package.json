@@ -17,7 +17,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.962.0",
     "@aws-sdk/client-sqs": "^3.958.0",
-    "client-cloudfront": "github:aws-sdk/client-cloudfront",
+    "@aws-sdk/client-cloudfront": "^3.962.0",
     "dotenv": "^17.2.3",
     "pg": "^8.16.3",
     "prom-client": "^15.1.3",
