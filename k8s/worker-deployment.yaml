@@ -37,3 +37,17 @@ spec:
           securityContext:
             runAsNonRoot: true
             runAsUser: 1000
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 9091
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 9091
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
