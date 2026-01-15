@@ -1,4 +1,6 @@
+import http from "http";
 import client from "prom-client";
+import { logger } from "../../lib/logger.js";
 
 const register = new client.Registry();
 client.collectDefaultMetrics({ register, prefix: "cdn_api_" });
@@ -103,6 +105,20 @@ export const measureExternalDuration = async <T>(
   }
 }
 
+export const startMetricsServer = (port: number) => {
+  const server = http.createServer(async (req, res) => {
+    if (req.url === "/metrics" && req.method === "GET") {
+      res.setHeader("Content-Type", register.contentType);
+      res.end(await register.metrics());
+    } else {
+      res.writeHead(404);
+      res.end();
+    }
+  })
 
+  server.listen(port, () => {
+    logger.info(`Metrics server listening on port ${port}`);
+  })
+}
 
 export { register };

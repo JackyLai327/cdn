@@ -11,6 +11,10 @@ spec:
       app: cdn-api
   template:
     metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9091"
+        prometheus.io/path: "/metrics"
       labels:
         app: cdn-api
     spec:

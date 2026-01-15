@@ -124,6 +124,7 @@ jobs:
           QUEUE_URL=$(aws ssm get-parameter --name "cdn/dev/QUEUE_URL" --query "Parameter.Value" --output text)
           JWT_SECRET=$(aws ssm get-parameter --name "cdn/dev/JWT_SECRET" --query "Parameter.Value" --output text)
           CLOUDFRONT_DISTRIBUTION_ID=$(aws ssm get-parameter --name "cdn/dev/CLOUDFRONT_DISTRIBUTION_ID" --query "Parameter.Value" --output text)
+          FLUENT_BIT_ROLE_ARN=$(aws ssm get-parameter --name "cdn/dev/FLUENT_BIT_ROLE_ARN" --query "Parameter.Value" --output text)
 
           echo "DB_HOST=$DB_HOST" >> $GITHUB_ENV
           echo "DB_USER=$DB_USER" >> $GITHUB_ENV
@@ -139,6 +140,9 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.ref_name }}-${{ github.sha }}
         run: |
+          envsubst < ../../k8s/fluent-bit.yaml > ../../k8s/fluent-bit-generated.yaml
+          kubectl apply -f ../../k8s/cloudwatch-namespace.yaml
+          kubectl apply -f ../../k8s/fluent-bit-generated.yaml
           envsubst < ../../k8s/configmap.yaml > ../../k8s/configmap-generated.yaml
           envsubst < ../../k8s/secrets.yaml > ../../k8s/secrets-generated.yaml
           kubectl apply -f ../../k8s/configmap-generated.yaml
@@ -149,3 +153,4 @@ jobs:
           kubectl apply -f ../../k8s/purger-cronjob.yaml
           rm ../../k8s/configmap-generated.yaml
           rm ../../k8s/secrets-generated.yaml
+          rm ../../k8s/fluent-bit-generated.yaml

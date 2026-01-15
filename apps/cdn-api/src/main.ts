@@ -10,10 +10,10 @@ import jobsRoutes from "./routes/jobs.routes.js";
 import filesRoutes from "./routes/files.routes.js";
 import devAuthRoutes from "./routes/auth.routes.js";
 import healthRoutes from "./routes/health.routes.js";
-import metricsRoutes from "./routes/metrics.routes.js";
 import { limiter } from "./middlewares/rateLimiter.js";
 import { authMiddleware } from "./middlewares/auth.js";
 import { httpLogger } from "./middlewares/httpLogger.js";
+import { startMetricsServer } from "./services/metrics.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
 import { notFoundHandler } from "./middlewares/notFoundHandler.js";
 import { metricsMiddleware } from "./middlewares/metricsMiddleware.js";
@@ -50,7 +50,6 @@ app.use(express.json({ limit: "10mb" }));
 app.use(hpp());
 
 // Routes (no auth required)
-app.use("/metrics", metricsRoutes)
 app.use("/api", healthRoutes);
 app.use("/api/auth", devAuthRoutes);
 
@@ -64,6 +63,9 @@ app.use("/api/jobs", jobsRoutes);
 // Error handlers
 app.use(notFoundHandler);
 app.use(errorHandler);
+
+// Start metrics server
+startMetricsServer(9091);
 
 // Start server
 const port = Number(config.APP_PORT) || 3000;
