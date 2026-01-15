@@ -110,6 +110,9 @@ export const startMetricsServer = (port: number) => {
     if (req.url === "/metrics" && req.method === "GET") {
       res.setHeader("Content-Type", register.contentType);
       res.end(await register.metrics());
+    } else if (req.url === "/health" && req.method === "GET") {
+      res.writeHead(200);
+      res.end();
     } else {
       res.writeHead(404);
       res.end();
